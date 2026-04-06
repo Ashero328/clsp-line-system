@@ -1,217 +1,247 @@
 <!DOCTYPE html>
 
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Digital Sanctuary</title>
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Plus+Jakarta+Sans:wght@500;700;800&amp;display=swap" rel="stylesheet"/>
-<!-- Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "on-secondary-fixed-variant": "#5c5b5b",
-                    "outline-variant": "#aab3b9",
-                    "primary-fixed": "#69ff89",
-                    "on-tertiary-fixed": "#34503e",
-                    "secondary-dim": "#535353",
-                    "error-container": "#fe8b70",
-                    "surface-variant": "#dbe4ea",
-                    "primary-fixed-dim": "#51f179",
-                    "tertiary-dim": "#3e5947",
-                    "primary-dim": "#006025",
-                    "secondary": "#5f5f5f",
-                    "tertiary": "#496553",
-                    "error": "#9e422c",
-                    "background": "#f8f9fb",
-                    "surface": "#f8f9fb",
-                    "secondary-container": "#e4e2e1",
-                    "secondary-fixed-dim": "#d6d4d3",
-                    "on-surface": "#2b3438",
-                    "surface-container": "#eaeef2",
-                    "primary-container": "#69ff89",
-                    "inverse-surface": "#0c0f10",
-                    "on-secondary-container": "#525251",
-                    "on-tertiary-fixed-variant": "#506d5a",
-                    "on-tertiary-container": "#46624f",
-                    "surface-container-lowest": "#ffffff",
-                    "surface-container-high": "#e2e9ee",
-                    "on-background": "#2b3438",
-                    "inverse-primary": "#5efd83",
-                    "on-surface-variant": "#586065",
-                    "on-secondary": "#fbf8f8",
-                    "surface-container-highest": "#dbe4ea",
-                    "surface-container-low": "#f1f4f7",
-                    "on-secondary-fixed": "#3f3f3f",
-                    "on-error-container": "#742410",
-                    "secondary-fixed": "#e4e2e1",
-                    "error-dim": "#5c1202",
-                    "on-error": "#fff7f6",
-                    "on-primary-fixed-variant": "#006a2a",
-                    "surface-tint": "#006e2b",
-                    "primary": "#006e2b",
-                    "outline": "#737c81",
-                    "on-tertiary": "#e7ffec",
-                    "tertiary-container": "#dbfce3",
-                    "on-primary-fixed": "#004a1b",
-                    "on-primary": "#e4ffe1",
-                    "surface-bright": "#f8f9fb",
-                    "on-primary-container": "#005f24",
-                    "surface-dim": "#d1dce2",
-                    "inverse-on-surface": "#9b9d9f",
-                    "tertiary-fixed": "#dbfce3",
-                    "tertiary-fixed-dim": "#cdedd5"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "fontFamily": {
-                    "headline": ["Plus Jakarta Sans"],
-                    "body": ["Inter"],
-                    "label": ["Inter"]
-            }
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Digital Sanctuary</title>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Plus+Jakarta+Sans:wght@500;700;800&amp;display=swap"
+    rel="stylesheet" />
+  <!-- Icons -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-fixed-variant": "#5c5b5b",
+            "outline-variant": "#aab3b9",
+            "primary-fixed": "#69ff89",
+            "on-tertiary-fixed": "#34503e",
+            "secondary-dim": "#535353",
+            "error-container": "#fe8b70",
+            "surface-variant": "#dbe4ea",
+            "primary-fixed-dim": "#51f179",
+            "tertiary-dim": "#3e5947",
+            "primary-dim": "#006025",
+            "secondary": "#5f5f5f",
+            "tertiary": "#496553",
+            "error": "#9e422c",
+            "background": "#f8f9fb",
+            "surface": "#f8f9fb",
+            "secondary-container": "#e4e2e1",
+            "secondary-fixed-dim": "#d6d4d3",
+            "on-surface": "#2b3438",
+            "surface-container": "#eaeef2",
+            "primary-container": "#69ff89",
+            "inverse-surface": "#0c0f10",
+            "on-secondary-container": "#525251",
+            "on-tertiary-fixed-variant": "#506d5a",
+            "on-tertiary-container": "#46624f",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#e2e9ee",
+            "on-background": "#2b3438",
+            "inverse-primary": "#5efd83",
+            "on-surface-variant": "#586065",
+            "on-secondary": "#fbf8f8",
+            "surface-container-highest": "#dbe4ea",
+            "surface-container-low": "#f1f4f7",
+            "on-secondary-fixed": "#3f3f3f",
+            "on-error-container": "#742410",
+            "secondary-fixed": "#e4e2e1",
+            "error-dim": "#5c1202",
+            "on-error": "#fff7f6",
+            "on-primary-fixed-variant": "#006a2a",
+            "surface-tint": "#006e2b",
+            "primary": "#006e2b",
+            "outline": "#737c81",
+            "on-tertiary": "#e7ffec",
+            "tertiary-container": "#dbfce3",
+            "on-primary-fixed": "#004a1b",
+            "on-primary": "#e4ffe1",
+            "surface-bright": "#f8f9fb",
+            "on-primary-container": "#005f24",
+            "surface-dim": "#d1dce2",
+            "inverse-on-surface": "#9b9d9f",
+            "tertiary-fixed": "#dbfce3",
+            "tertiary-fixed-dim": "#cdedd5"
           },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
         },
-      }
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .tonal-shift-no-borders {
-            border: none !important;
-        }
-        body {
-            -webkit-tap-highlight-color: transparent;
-        }
-    </style>
-<style>
+      },
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL'0, 'wght'400, 'GRAD'0, 'opsz'24;
+    }
+
+    .tonal-shift-no-borders {
+      border: none !important;
+    }
+
+    body {
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+  <style>
     body {
       min-height: max(884px, 100dvh);
     }
   </style>
-  </head>
+</head>
 <body class="bg-surface font-body text-on-surface antialiased selection:bg-primary-container">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-[#f8f9fb]/70 dark:bg-slate-900/70 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden">
-<img alt="Profile" class="w-full h-full object-cover" data-alt="Minimalist professional portrait of a person with soft lighting and a clean neutral background, editorial style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGwfJfUQ7Sw6CjFBaLdoZ17OfTMf9hfeAXA1gyzZVxu-sCBG0FZoYdcf37PI601p6x7sjprVvSdkcijKTcpspB-GNDt8UBmDxyR9IE4nmvuGBlg8lhSDYwfIolXS1g7FnZQ96ltzKlivLwGoDHhQn_Q7k7Lh5iFtSXtzNkoSzBFIue6smULFN1HmNT4C9kM8KYDijBVhyyhkXyxYFbw0kRZbR8CuYLeopq6Rs1Zy_Ca37yFXmdTMjs8n4HQ4Ab7GJ5yYK-CTTHSPM"/>
-</div>
-<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#2b3438] dark:text-slate-100 tracking-tight">Digital Sanctuary</h1>
-</div>
-<button class="text-[#006e2b] dark:text-[#06C755] font-['Plus_Jakarta_Sans'] font-medium text-lg tracking-tight hover:bg-[#f1f4f7] dark:hover:bg-slate-800 transition-colors active:scale-95 duration-200 px-3 py-1 rounded-lg">
-            Sign Out
-        </button>
-</header>
-<!-- Main Content -->
-<main class="min-h-screen pt-24 pb-32 flex flex-col items-center px-6">
-<!-- Profile Hero Section -->
-<section class="w-full max-w-md flex flex-col items-center mt-12 mb-20 text-center">
-<div class="relative group">
-<!-- Outer Ring (Implicit Boundary) -->
-<div class="w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-primary to-primary-fixed shadow-xl">
-<div class="w-full h-full rounded-full bg-surface p-1">
-<img alt="User Avatar" class="w-full h-full rounded-full object-cover" data-alt="High-end editorial close-up portrait of a user, clean aesthetic, studio lighting, soft shadows" id="user-avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgwFqn8B3ZpZ2S5800pGqHZxybu2bP-m45uhDuH-Wx8kteEARPFhnGdJM15eKpxAoEWXZ8hWLezKBTxvhYo30gRF7UYSaO1_Id_GZmVF61AiFdxB92m9js2qFj0hGYe7z3NBFWAzYMyOTuJtea_PC8QtLqy9-pkXRI9-nxjfbYmIpjgr4xFqBD69ygdcLulLYrZiMfq9-XnEMsj3a-UbawPEmATGOkzNoekcZ94nwGoo_2S9qiPucrdL9_mbiyLnFJbq5alx-Isew"/>
-</div>
-</div>
-<!-- Status Chip -->
-<div class="absolute bottom-2 right-2 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">
-                    Online
-                </div>
-</div>
-<div class="mt-8 space-y-2">
-<h2 class="font-headline font-extrabold text-4xl tracking-tight text-on-surface" id="user-name">Alex Rivero</h2>
-<p class="text-on-surface-variant font-medium tracking-wide uppercase text-xs opacity-60">Verified Member</p>
-</div>
-</section>
-<!-- Bento Grid Interaction -->
-<div class="w-full max-w-md grid grid-cols-2 gap-4">
-<!-- Glassmorphism Card 1 -->
-<div class="col-span-2 p-8 rounded-[2rem] bg-surface-container-lowest flex flex-col justify-between aspect-[2/1] transition-all hover:bg-surface-container-low active:scale-[0.98] cursor-pointer">
-<div class="flex justify-between items-start">
-<span class="material-symbols-outlined text-primary text-3xl" data-icon="auto_awesome">auto_awesome</span>
-<span class="font-label text-[10px] uppercase tracking-[0.2em] text-outline">Sanctuary Status</span>
-</div>
-<div class="mt-4">
-<h3 class="font-headline font-bold text-xl">Daily Serenity</h3>
-<p class="text-on-surface-variant text-sm mt-1">Your space is currently optimized for deep focus.</p>
-</div>
-</div>
-<!-- Smaller Bento Items -->
-<div class="p-6 rounded-[2rem] bg-surface-container-low flex flex-col gap-4 aspect-square">
-<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
-</div>
-<div class="mt-auto">
-<p class="font-headline font-bold text-lg">Alerts</p>
-<p class="text-xs text-on-surface-variant">2 New Notes</p>
-</div>
-</div>
-<div class="p-6 rounded-[2rem] bg-primary text-on-primary flex flex-col gap-4 aspect-square">
-<div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-<span class="material-symbols-outlined" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
-</div>
-<div class="mt-auto">
-<p class="font-headline font-bold text-lg">Secure</p>
-<p class="text-xs opacity-80">Encryption On</p>
-</div>
-</div>
-</div>
-<!-- Action Area -->
-<div class="mt-12 w-full max-w-md">
-<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-bold text-lg transition-all active:scale-[0.97] bg-gradient-to-br from-primary to-primary-dim">
-                Enter Dashboard
-            </button>
-<button class="w-full py-4 mt-4 text-on-surface-variant font-label text-sm uppercase tracking-widest hover:text-on-surface transition-colors">
-                Privacy Settings
-            </button>
-</div>
-</main>
-<!-- BottomNavBar (Mobile Shell) -->
-<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#f8f9fb]/70 dark:bg-slate-900/70 backdrop-blur-xl flex justify-around items-center px-8 pb-6 pt-2 rounded-t-2xl z-50 shadow-[0_-20px_40px_rgba(43,52,56,0.06)] tonal-shift-no-borders">
-<button class="flex flex-col items-center justify-center text-[#2b3438]/40 dark:text-slate-500 p-3 hover:text-[#006e2b] transition-all active:scale-90 duration-200">
-<span class="material-symbols-outlined" data-icon="home">home</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest mt-1">Home</span>
-</button>
-<button class="flex flex-col items-center justify-center text-[#006e2b] dark:text-[#06C755] bg-[#006e2b]/10 rounded-full p-3 active:scale-90 duration-200">
-<span class="material-symbols-outlined" data-icon="account_circle" style="font-variation-settings: 'FILL' 1;">account_circle</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest mt-1">Profile</span>
-</button>
-<button class="flex flex-col items-center justify-center text-[#2b3438]/40 dark:text-slate-500 p-3 hover:text-[#006e2b] transition-all active:scale-90 duration-200">
-<span class="material-symbols-outlined" data-icon="settings">settings</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest mt-1">Settings</span>
-</button>
-</nav>
-<!-- LIFF SDK & Initialization -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-        async function initializeLiff() {
-            try {
-                await liff.init({ liffId: "2009708366-ZRcDL4VT" }); // User would replace this
-                if (liff.isLoggedIn()) {
-                    const profile = await liff.getProfile();
-                    document.getElementById('user-name').innerText = profile.displayName;
-                    document.getElementById('user-avatar').src = profile.pictureUrl;
-                } else {
-                    // Logic for not logged in state could go here, e.g., redirect or show login UI
-                }
-            } catch (err) {
-                console.error("LIFF initialization failed", err);
-            }
+  <!-- TopAppBar -->
+  <header
+    class="fixed top-0 w-full z-50 bg-[#f8f9fb]/70 dark:bg-slate-900/70 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden">
+        <img alt="Profile" class="w-full h-full object-cover"
+          data-alt="Minimalist professional portrait of a person with soft lighting and a clean neutral background, editorial style"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGwfJfUQ7Sw6CjFBaLdoZ17OfTMf9hfeAXA1gyzZVxu-sCBG0FZoYdcf37PI601p6x7sjprVvSdkcijKTcpspB-GNDt8UBmDxyR9IE4nmvuGBlg8lhSDYwfIolXS1g7FnZQ96ltzKlivLwGoDHhQn_Q7k7Lh5iFtSXtzNkoSzBFIue6smULFN1HmNT4C9kM8KYDijBVhyyhkXyxYFbw0kRZbR8CuYLeopq6Rs1Zy_Ca37yFXmdTMjs8n4HQ4Ab7GJ5yYK-CTTHSPM" />
+      </div>
+      <h1 class="font-['Plus_Jakarta_Sans'] font-bold text-[#2b3438] dark:text-slate-100 tracking-tight">Digital
+        Sanctuary</h1>
+    </div>
+    <button
+      class="text-[#006e2b] dark:text-[#06C755] font-['Plus_Jakarta_Sans'] font-medium text-lg tracking-tight hover:bg-[#f1f4f7] dark:hover:bg-slate-800 transition-colors active:scale-95 duration-200 px-3 py-1 rounded-lg">
+      Sign Out
+    </button>
+  </header>
+  <!-- Main Content -->
+  <main class="min-h-screen pt-24 pb-32 flex flex-col items-center px-6">
+    <!-- Profile Hero Section -->
+    <section class="w-full max-w-md flex flex-col items-center mt-12 mb-20 text-center">
+      <div class="relative group">
+        <!-- Outer Ring (Implicit Boundary) -->
+        <div class="w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-primary to-primary-fixed shadow-xl">
+          <div class="w-full h-full rounded-full bg-surface p-1">
+            <img alt="User Avatar" class="w-full h-full rounded-full object-cover"
+              data-alt="High-end editorial close-up portrait of a user, clean aesthetic, studio lighting, soft shadows"
+              id="user-avatar"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgwFqn8B3ZpZ2S5800pGqHZxybu2bP-m45uhDuH-Wx8kteEARPFhnGdJM15eKpxAoEWXZ8hWLezKBTxvhYo30gRF7UYSaO1_Id_GZmVF61AiFdxB92m9js2qFj0hGYe7z3NBFWAzYMyOTuJtea_PC8QtLqy9-pkXRI9-nxjfbYmIpjgr4xFqBD69ygdcLulLYrZiMfq9-XnEMsj3a-UbawPEmATGOkzNoekcZ94nwGoo_2S9qiPucrdL9_mbiyLnFJbq5alx-Isew" />
+          </div>
+        </div>
+        <!-- Status Chip -->
+        <div
+          class="absolute bottom-2 right-2 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">
+          Online
+        </div>
+      </div>
+      <div class="mt-8 space-y-2">
+        <h2 class="font-headline font-extrabold text-4xl tracking-tight text-on-surface" id="user-name">Alex Rivero</h2>
+        <p class="text-on-surface-variant font-medium tracking-wide uppercase text-xs opacity-60">Verified Member</p>
+      </div>
+    </section>
+    <!-- Bento Grid Interaction -->
+    <div class="w-full max-w-md grid grid-cols-2 gap-4">
+      <!-- Glassmorphism Card 1 -->
+      <div
+        class="col-span-2 p-8 rounded-[2rem] bg-surface-container-lowest flex flex-col justify-between aspect-[2/1] transition-all hover:bg-surface-container-low active:scale-[0.98] cursor-pointer">
+        <div class="flex justify-between items-start">
+          <span class="material-symbols-outlined text-primary text-3xl" data-icon="auto_awesome">auto_awesome</span>
+          <span class="font-label text-[10px] uppercase tracking-[0.2em] text-outline">Sanctuary Status</span>
+        </div>
+        <div class="mt-4">
+          <h3 class="font-headline font-bold text-xl">Daily Serenity</h3>
+          <p class="text-on-surface-variant text-sm mt-1">Your space is currently optimized for deep focus.</p>
+        </div>
+      </div>
+      <!-- Smaller Bento Items -->
+      <div class="p-6 rounded-[2rem] bg-surface-container-low flex flex-col gap-4 aspect-square">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+        </div>
+        <div class="mt-auto">
+          <p class="font-headline font-bold text-lg">Alerts</p>
+          <p class="text-xs text-on-surface-variant">2 New Notes</p>
+        </div>
+      </div>
+      <div class="p-6 rounded-[2rem] bg-primary text-on-primary flex flex-col gap-4 aspect-square">
+        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <span class="material-symbols-outlined" data-icon="lock"
+            style="font-variation-settings: 'FILL' 1;">lock</span>
+        </div>
+        <div class="mt-auto">
+          <p class="font-headline font-bold text-lg">Secure</p>
+          <p class="text-xs opacity-80">Encryption On</p>
+        </div>
+      </div>
+    </div>
+    <!-- Action Area -->
+    <div class="mt-12 w-full max-w-md">
+      <button
+        class="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-bold text-lg transition-all active:scale-[0.97] bg-gradient-to-br from-primary to-primary-dim">
+        Enter Dashboard
+      </button>
+      <button
+        class="w-full py-4 mt-4 text-on-surface-variant font-label text-sm uppercase tracking-widest hover:text-on-surface transition-colors">
+        Privacy Settings
+      </button>
+    </div>
+  </main>
+  <!-- BottomNavBar (Mobile Shell) -->
+  <nav
+    class="md:hidden fixed bottom-0 left-0 w-full bg-[#f8f9fb]/70 dark:bg-slate-900/70 backdrop-blur-xl flex justify-around items-center px-8 pb-6 pt-2 rounded-t-2xl z-50 shadow-[0_-20px_40px_rgba(43,52,56,0.06)] tonal-shift-no-borders">
+    <button
+      class="flex flex-col items-center justify-center text-[#2b3438]/40 dark:text-slate-500 p-3 hover:text-[#006e2b] transition-all active:scale-90 duration-200">
+      <span class="material-symbols-outlined" data-icon="home">home</span>
+      <span class="font-['Inter'] text-[10px] uppercase tracking-widest mt-1">Home</span>
+    </button>
+    <button
+      class="flex flex-col items-center justify-center text-[#006e2b] dark:text-[#06C755] bg-[#006e2b]/10 rounded-full p-3 active:scale-90 duration-200">
+      <span class="material-symbols-outlined" data-icon="account_circle"
+        style="font-variation-settings: 'FILL' 1;">account_circle</span>
+      <span class="font-['Inter'] text-[10px] uppercase tracking-widest mt-1">Profile</span>
+    </button>
+    <button
+      class="flex flex-col items-center justify-center text-[#2b3438]/40 dark:text-slate-500 p-3 hover:text-[#006e2b] transition-all active:scale-90 duration-200">
+      <span class="material-symbols-outlined" data-icon="settings">settings</span>
+      <span class="font-['Inter'] text-[10px] uppercase tracking-widest mt-1">Settings</span>
+    </button>
+  </nav>
+  <!-- LIFF SDK & Initialization -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    async function initializeLiff() {
+      try {
+        await liff.init({
+          liffId: "2009708366-ZRcDL4VT"
+        }); // User would replace this
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          document.getElementById('user-name').innerText = profile.displayName;
+          document.getElementById('user-avatar').src = profile.pictureUrl;
+        } else {
+          liff.login();
         }
-        initializeLiff();
-    </script>
-</body></html>
+      } catch (err) {
+        console.error("LIFF initialization failed", err);
+      }
+    }
+    initializeLiff();
+  </script>
+</body>
+</html>
