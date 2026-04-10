@@ -150,8 +150,8 @@
       color: #586065;
     }
     /* Screen transition */
-    .screen { display: none; }
-    .screen.active { display: flex; }
+    .screen { display: none !important; }
+    .screen.active { display: flex !important; flex-direction: column; }
     /* Scrollbar hide */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -1226,7 +1226,8 @@ function initApp() {
   showScreen('screen-home');
 }
 
-window.onload = initializeLiff;
+// window.onload = initializeLiff; // LIFF 暫時停用
+window.onload = initApp;
 </script>
 </body>
 </html>
