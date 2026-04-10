@@ -1,85 +1,86 @@
 * { -webkit-tap-highlight-color: transparent; }
-body { background: #f8f9fb; font-family: 'Inter', sans-serif; }
+body { background: #f8f9fa; font-family: 'Inter', sans-serif; }
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 
 /* ── Neumorphic Shadow System ── */
-/* Light source: Top-Left */
+/* Light source: Top-Left                               */
+/* Dark shadow = surface_dim #d9dadb, Light = #ffffff   */
 .nm-raised {
-  box-shadow: 5px 5px 12px #c8d4db, -5px -5px 12px #ffffff;
+  box-shadow: 5px 5px 12px #d9dadb, -5px -5px 12px #ffffff;
 }
 .nm-raised-sm {
-  box-shadow: 3px 3px 7px #c8d4db, -3px -3px 7px #ffffff;
+  box-shadow: 3px 3px 7px #d9dadb, -3px -3px 7px #ffffff;
 }
 .nm-sunken {
-  box-shadow: inset 3px 3px 7px #c8d4db, inset -3px -3px 7px #ffffff;
+  box-shadow: inset 3px 3px 7px #d9dadb, inset -3px -3px 7px #ffffff;
 }
 .nm-pressed {
-  box-shadow: inset 2px 2px 5px #c8d4db, inset -1px -1px 3px #ffffff;
+  box-shadow: inset 2px 2px 5px #d9dadb, inset -1px -1px 3px #ffffff;
 }
-/* Primary button: gradient emboss */
+/* Primary button: gradient emboss — primary_container → primary (top-left → bottom-right) */
 .nm-btn-primary {
-  background: linear-gradient(135deg, #69ff89 0%, #006e2b 100%);
-  box-shadow: 4px 4px 10px #c8d4db, -2px -2px 6px #ffffff;
+  background: linear-gradient(135deg, #53c8a1 0%, #006c51 100%);
+  box-shadow: 4px 4px 10px #d9dadb, -2px -2px 6px #ffffff;
   transition: box-shadow 0.15s ease, transform 0.1s ease;
 }
 .nm-btn-primary:active {
-  box-shadow: inset 3px 3px 7px rgba(0,60,20,0.35), inset -2px -2px 5px rgba(255,255,255,0.2);
+  box-shadow: inset 3px 3px 7px rgba(0,60,50,0.35), inset -2px -2px 5px rgba(255,255,255,0.2);
   transform: scale(0.98);
 }
 /* Secondary raised button */
 .nm-btn-secondary {
-  box-shadow: 3px 3px 7px #c8d4db, -3px -3px 7px #ffffff;
+  box-shadow: 3px 3px 7px #d9dadb, -3px -3px 7px #ffffff;
   transition: box-shadow 0.15s ease, transform 0.1s ease;
 }
 .nm-btn-secondary:active {
-  box-shadow: inset 2px 2px 5px #c8d4db, inset -2px -2px 5px #ffffff;
+  box-shadow: inset 2px 2px 5px #d9dadb, inset -2px -2px 5px #ffffff;
   transform: scale(0.97);
 }
 /* FAB */
 .nm-fab {
-  background: linear-gradient(135deg, #53c8a1 0%, #006e2b 100%);
-  box-shadow: 6px 6px 14px #c8d4db, -4px -4px 10px #ffffff;
+  background: linear-gradient(135deg, #53c8a1 0%, #006c51 100%);
+  box-shadow: 6px 6px 14px #d9dadb, -4px -4px 10px #ffffff;
   transition: box-shadow 0.15s, transform 0.1s;
 }
 .nm-fab:active {
-  box-shadow: inset 3px 3px 8px rgba(0,50,20,0.3);
+  box-shadow: inset 3px 3px 8px rgba(0,60,50,0.3);
   transform: scale(0.95);
 }
 /* Card */
 .nm-card {
   background: #ffffff;
-  box-shadow: 5px 5px 12px #c8d4db, -5px -5px 12px #ffffff;
+  box-shadow: 5px 5px 12px #d9dadb, -5px -5px 12px #ffffff;
   transition: box-shadow 0.2s, transform 0.15s;
 }
 .nm-card:active { transform: scale(0.985); }
 /* Input debossed well */
 .nm-input {
   background: #dde3e9;
-  box-shadow: inset 2px 2px 5px #c8d4db, inset -2px -2px 5px #edf1f5;
+  box-shadow: inset 2px 2px 5px #d9dadb, inset -2px -2px 5px #f0f2f4;
   border: none;
   outline: none;
   transition: box-shadow 0.15s;
 }
 .nm-input:focus {
-  box-shadow: inset 3px 3px 6px #b8c6ce, inset -2px -2px 4px #edf1f5;
+  box-shadow: inset 3px 3px 6px #c8cccf, inset -2px -2px 4px #f0f2f4;
 }
 /* Glass nav */
 .nm-nav {
-  background: rgba(248, 249, 251, 0.75);
+  background: rgba(248, 249, 250, 0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 -8px 32px rgba(43,52,56,0.06);
+  box-shadow: 0 -8px 32px rgba(25,28,29,0.06);
 }
 /* Chip sunken active */
 .chip-active {
-  box-shadow: inset 2px 2px 5px #c8d4db, inset -2px -2px 5px #edf1f5;
+  box-shadow: inset 2px 2px 5px #d9dadb, inset -2px -2px 5px #f0f2f4;
   background: #dde3e9;
-  color: #006e2b;
+  color: #006c51;
   font-weight: 600;
 }
 .chip-inactive {
-  box-shadow: 2px 2px 5px #c8d4db, -2px -2px 5px #ffffff;
-  background: #f8f9fb;
+  box-shadow: 2px 2px 5px #d9dadb, -2px -2px 5px #ffffff;
+  background: #f8f9fa;
   color: #586065;
 }
 /* Screen transition */
@@ -90,21 +91,21 @@ body { background: #f8f9fb; font-family: 'Inter', sans-serif; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 /* Summary banner gradient */
 .banner-primary {
-  background: linear-gradient(135deg, #53c8a1 0%, #006e2b 100%);
-  box-shadow: 5px 5px 14px #c8d4db, -3px -3px 8px #ffffff;
+  background: linear-gradient(135deg, #53c8a1 0%, #006c51 100%);
+  box-shadow: 5px 5px 14px #d9dadb, -3px -3px 8px #ffffff;
 }
 /* Payer / split chip selected */
 .payer-selected {
-  background: linear-gradient(135deg, #69ff89, #006e2b);
-  box-shadow: inset 2px 2px 5px rgba(0,40,15,0.25);
-  color: #fff;
+  background: linear-gradient(135deg, #53c8a1, #006c51);
+  box-shadow: inset 2px 2px 5px rgba(0,50,40,0.25);
+  color: #ffffff;
   font-weight: 600;
 }
 /* Split tab active */
 .split-tab-active {
-  background: #f8f9fb;
-  box-shadow: 2px 2px 6px #c8d4db, -2px -2px 6px #ffffff;
-  color: #006e2b;
+  background: #f8f9fa;
+  box-shadow: 2px 2px 6px #d9dadb, -2px -2px 6px #ffffff;
+  color: #006c51;
   font-weight: 700;
 }
 .split-tab-inactive {
@@ -113,4 +114,4 @@ body { background: #f8f9fb; font-family: 'Inter', sans-serif; }
 }
 /* Debt arrow chip */
 .debt-debtor { background: #ffe8e2; color: #742410; }
-.debt-creditor { background: #d6fbe0; color: #005f24; }
+.debt-creditor { background: #d0f0e8; color: #006c51; }
