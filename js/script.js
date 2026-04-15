@@ -409,23 +409,11 @@ function exportExpensesCSV(pid) {
   const isLine   = /Line\//i.test(navigator.userAgent);
 
   if (isLine) {
-    // LINE 內建瀏覽器不支援 Blob 下載，改用 data: URI
-    const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    const a = document.createElement('a');
-    a.href = dataUri;
-    a.download = filename;
-    a.click();
-    // 若 data: URI 仍被擋，fallback：開新視窗讓使用者長按儲存
-    setTimeout(() => {
-      try {
-        const w = window.open(dataUri, '_blank');
-        if (!w) {
-          alert('請點擊右上角選單 → 「以瀏覽器開啟」後再試一次匯出。');
-        }
-      } catch (_) {
-        alert('請點擊右上角選單 → 「以瀏覽器開啟」後再試一次匯出。');
-      }
-    }, 800);
+    // LINE 內建瀏覽器封鎖所有下載 → 開提示 modal
+    const modal = document.getElementById('modal-line-export');
+    document.getElementById('line-export-csv-text').value =
+      [headers.join(','), ...rows.map(r => r.replace(/^"|"$/gm, '').replaceAll('","', '\t'))].join('\n');
+    modal.classList.remove('hidden');
   } else {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
@@ -978,6 +966,24 @@ function bindAllEvents() {
 
   document.getElementById('btn-export-excel').addEventListener('click', () => {
     exportExpensesCSV(AppState.currentProjectId);
+  });
+
+  // LINE 匯出提示 modal
+  document.getElementById('btn-line-export-close').addEventListener('click', () => {
+    document.getElementById('modal-line-export').classList.add('hidden');
+  });
+  document.getElementById('modal-line-export').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+  });
+  document.getElementById('btn-line-export-copy').addEventListener('click', () => {
+    const ta = document.getElementById('line-export-csv-text');
+    ta.select();
+    navigator.clipboard.writeText(ta.value).then(() => {
+      const btn = document.getElementById('btn-line-export-copy');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-outlined txt-xl clr-primary" style="font-variation-settings:\'FILL\' 1;">check_circle</span><span class="clr-primary">已複製！</span>';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }).catch(() => { ta.select(); document.execCommand('copy'); });
   });
 
   // Project detail — settings nav
