@@ -2,68 +2,65 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClearSplit 分帳系統</title>
+
+  <!-- Fonts: Manrope + Material Symbols -->
   <link href="https://fonts.googleapis.com" rel="preconnect" />
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind (layout utilities) -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            "outline-variant": "#aab3b9",
-            "primary-fixed": "#53c8a1",
-            "error-container": "#fe8b70",
-            "surface-variant": "#dbe4ea",
-            "primary": "#006c51",
-            "secondary": "#5f5f5f",
-            "tertiary": "#496553",
-            "error": "#9e422c",
-            "background": "#f8f9fa",
-            "surface": "#f8f9fa",
-            "secondary-container": "#e4e2e1",
-            "on-surface": "#191c1d",
-            "surface-container": "#eaeef2",
-            "primary-container": "#53c8a1",
-            "on-secondary-container": "#525251",
-            "surface-container-lowest": "#ffffff",
-            "surface-container-high": "#dde3e9",
-            "on-background": "#191c1d",
-            "on-surface-variant": "#586065",
-            "on-secondary": "#fbf8f8",
-            "surface-container-highest": "#dbe4ea",
-            "surface-container-low": "#f1f4f7",
-            "on-error-container": "#742410",
-            "on-error": "#fff7f6",
-            "surface-tint": "#006c51",
-            "outline": "#737c81",
-            "on-primary": "#ffffff",
-            "on-primary-container": "#003d30",
-            "surface-dim": "#d9dadb",
-            "tertiary-container": "#d0f0e8",
-            "primary-dim": "#005040"
+            "primary":                  "#53C8A1",
+            "primary-bright":           "#7EDBC0",
+            "primary-dim":              "#1a5c4a",
+            "primary-container":        "#D1F2EB",
+            "on-primary":               "#ffffff",
+            "on-primary-container":     "#1a5c4a",
+            "secondary":                "#1a5c4a",
+            "secondary-container":      "rgba(83,200,161,0.12)",
+            "on-secondary-container":   "#1a5c4a",
+            "background":               "#F9FAFB",
+            "surface":                  "#F9FAFB",
+            "surface-lowest":           "#F1F4F5",
+            "surface-low":              "#EAEEEF",
+            "surface-mid":              "#F3F6F7",
+            "surface-high":             "#FAFCFB",
+            "surface-dim":              "#E2E5E7",
+            "on-surface":               "#2d3335",
+            "on-surface-variant":       "#5a6062",
+            "outline":                  "rgba(45,51,53,0.15)",
+            "outline-variant":          "#adb3b5",
+            "error":                    "#a83836",
+            "error-container":          "rgba(168,56,54,0.10)"
           },
           fontFamily: {
-            "headline": ["Manrope", "Plus Jakarta Sans"],
-            "body": ["Inter"],
-            "label": ["Inter"]
+            "headline": ["Manrope", "sans-serif"],
+            "body":     ["Manrope", "sans-serif"],
+            "label":    ["Manrope", "sans-serif"]
           },
           borderRadius: {
-            DEFAULT: "0.25rem",
-            lg: "0.5rem",
-            xl: "0.75rem",
+            DEFAULT: "0.375rem",
+            "lg":  "0.625rem",
+            "xl":  "0.875rem",
             "2xl": "1rem",
             "3xl": "1.5rem",
             "4xl": "2rem",
-            full: "9999px"
+            "full":"9999px"
           }
         }
       }
     }
   </script>
+
+  <!-- Design System -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="bg-surface antialiased">
@@ -71,124 +68,152 @@
 <div id="app" class="max-w-[430px] mx-auto relative h-screen overflow-hidden bg-surface">
 
   <!-- ══════════════════════════════════════════
-       SCREEN 1: HOME – PROJECT LIST
+       SCREEN 1: HOME — PROJECT LIST
   ══════════════════════════════════════════ -->
   <div id="screen-home" class="screen active absolute inset-0 flex flex-col">
-    <!-- Top App Bar (glass) -->
-    <header class="nm-nav flex items-center justify-between px-6 py-4 flex-shrink-0 z-10">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full nm-raised-sm overflow-hidden flex-shrink-0">
-          <img id="liff-user-avatar" src="" alt="你" class="w-full h-full object-cover"
-            onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'material-symbols-outlined text-primary text-xl flex items-center justify-center h-full\'>account_circle</span>'" />
-        </div>
-        <h1 class="font-headline font-extrabold text-lg text-primary tracking-tight">ClearSplit</h1>
+
+    <!-- Header -->
+    <header class="app-header flex items-center justify-between px-6 py-4 flex-shrink-0 z-10">
+      <h1 class="app-header-title font-headline">ClearSplit</h1>
+      <div class="w-10 h-10 rounded-full nm-raised-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
+        <img id="liff-user-avatar" src="" alt="你" class="w-full h-full object-cover"
+          onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'material-symbols-outlined clr-muted\' style=\'font-size:22px;\'>account_circle</span>'" />
       </div>
-      <span class="font-label text-xs uppercase tracking-widest text-on-surface-variant opacity-60">分帳系統</span>
     </header>
 
     <!-- Content -->
-    <main class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-28">
+    <main class="flex-1 overflow-y-auto no-scrollbar px-6 pb-8">
+
+      <!-- Hero CTA -->
+      <section class="pt-6 pb-5">
+        <button id="btn-new-project"
+          class="nm-cta-hero w-full py-5 px-6 rounded-4xl flex items-center justify-between group">
+          <span class="cta-label font-headline">建立新專案</span>
+          <div class="cta-icon-circle w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined txt-2xl clr-white" style="font-variation-settings:'FILL' 1;">add</span>
+          </div>
+        </button>
+      </section>
+
       <!-- Section Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="font-headline font-bold text-xl text-on-surface tracking-tight">我的分帳</h2>
-        <span id="home-project-count"
-          class="chip-inactive rounded-full text-xs px-3 py-1 font-label font-semibold">0 個</span>
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="section-label font-label">我的專案列表</h2>
+        <span id="home-project-count" class="chip-inactive rounded-full px-3 py-1 font-label font-semibold">0 個</span>
       </div>
 
       <!-- Project List -->
-      <div id="home-project-list" class="flex flex-col gap-4"></div>
+      <div id="home-project-list" class="flex flex-col gap-6"></div>
 
       <!-- Empty State -->
-      <div id="home-empty-state" class="flex flex-col items-center gap-4 py-20">
-        <div class="w-20 h-20 rounded-3xl nm-raised flex items-center justify-center">
-          <span class="material-symbols-outlined text-4xl text-on-surface-variant opacity-30">receipt_long</span>
+      <div id="home-empty-state" class="flex flex-col items-center gap-4 py-12">
+        <div class="empty-icon-wrap">
+          <span class="material-symbols-outlined txt-3xl clr-muted" style="opacity:0.25;">receipt_long</span>
         </div>
         <div class="text-center">
-          <p class="font-headline font-bold text-on-surface-variant">還沒有分帳專案</p>
-          <p class="font-body text-sm text-outline mt-1">點擊右下方 + 新增你的第一個分帳</p>
+          <p class="empty-title font-headline">還沒有分帳專案</p>
+          <p class="empty-hint font-body mt-1">點擊上方「建立新專案」開始</p>
         </div>
       </div>
     </main>
 
-    <!-- FAB -->
-    <button id="btn-new-project"
-      class="nm-fab absolute bottom-24 right-6 w-14 h-14 rounded-3xl flex items-center justify-center z-20">
-      <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1;">add</span>
-    </button>
-
-    <!-- Bottom Nav -->
-    <nav class="nm-nav absolute bottom-0 left-0 right-0 flex items-center justify-around px-8 pb-6 pt-3 rounded-t-3xl z-10">
-      <button class="flex flex-col items-center gap-1">
-        <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1;">home</span>
-        <span class="font-label text-[9px] uppercase tracking-widest text-primary">首頁</span>
-      </button>
-      <button class="flex flex-col items-center gap-1 opacity-40">
-        <span class="material-symbols-outlined text-on-surface-variant text-2xl">receipt_long</span>
-        <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">帳目</span>
-      </button>
-      <button class="flex flex-col items-center gap-1 opacity-40">
-        <span class="material-symbols-outlined text-on-surface-variant text-2xl">calculate</span>
-        <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">結算</span>
-      </button>
-    </nav>
   </div>
 
   <!-- ══════════════════════════════════════════
-       SCREEN 2: CREATE PROJECT
+       SCREEN 2: CREATE / EDIT PROJECT
   ══════════════════════════════════════════ -->
   <div id="screen-create-project" class="screen absolute inset-0 flex flex-col">
-    <!-- Top Bar -->
-    <header class="nm-nav flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
       <button id="btn-create-project-back"
-        class="w-10 h-10 rounded-2xl nm-btn-secondary flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-on-surface text-xl">arrow_back</span>
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
       </button>
-      <h2 class="font-headline font-bold text-xl text-on-surface tracking-tight">新增專案</h2>
+      <h2 id="create-project-title" class="app-header-page-title font-headline">新增專案</h2>
     </header>
 
-    <!-- Content -->
     <div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-32 flex flex-col gap-7">
+
+      <!-- 日期 -->
+      <div>
+        <label class="form-label font-label mb-2 flex items-center gap-1">
+          日期 <span class="required-star">*</span>
+        </label>
+        <input id="input-project-date" type="date"
+          class="nm-input w-full rounded-2xl px-5 py-4" />
+      </div>
 
       <!-- 專案名稱 -->
       <div>
-        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2 block">專案名稱</label>
-        <input id="input-project-name" type="text"
-          placeholder="例如：墾丁旅遊、尾牙聚餐"
-          class="nm-input w-full rounded-2xl px-5 py-4 font-body text-on-surface placeholder-on-surface-variant/40 text-sm" />
+        <label class="form-label font-label mb-2 flex items-center gap-1">
+          專案名稱 <span class="required-star">*</span>
+        </label>
+        <input id="input-project-name" type="text" placeholder="例如：墾丁旅遊、尾牙聚餐"
+          class="nm-input w-full rounded-2xl px-5 py-4" />
       </div>
 
       <!-- 成員 -->
       <div>
         <div class="flex items-center justify-between mb-3">
-          <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">成員</label>
-          <span id="member-count-badge" class="chip-inactive rounded-full text-xs px-3 py-1 font-semibold">0 人</span>
+          <label class="form-label font-label flex items-center gap-1">
+            成員 <span class="required-star">*</span>
+          </label>
+          <span id="member-count-badge" class="chip-inactive rounded-full px-3 py-1 font-label font-semibold">0 人</span>
         </div>
         <div class="flex gap-2">
-          <input id="input-new-member-name" type="text"
-            placeholder="輸入成員名稱"
-            class="nm-input flex-1 rounded-2xl px-5 py-3.5 font-body text-on-surface placeholder-on-surface-variant/40 text-sm" />
+          <div class="flex-1 nm-input-group rounded-2xl">
+            <input id="input-new-member-name" type="text" placeholder="輸入成員名稱"
+              class="flex-1 px-4 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;" />
+            <select id="select-member-role">
+              <option value="editor">編輯者</option>
+              <option value="viewer">檢視者</option>
+            </select>
+          </div>
           <button id="btn-add-member"
             class="nm-btn-primary w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings:'FILL' 1;">person_add</span>
+            <span class="material-symbols-outlined txt-2xl" style="font-variation-settings:'FILL' 1;">person_add</span>
           </button>
         </div>
-        <div id="member-chip-list" class="flex flex-wrap gap-2 mt-4"></div>
+        <button id="btn-add-line-friend" type="button"
+          class="nm-btn-secondary w-full rounded-2xl px-4 py-3 mt-3 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+          <span class="font-headline font-extrabold txt-lg" style="color:#06C755;">LINE</span>
+          <span class="font-label txt-md clr-muted">從 LINE 好友新增（即將推出）</span>
+        </button>
+        <div id="member-chip-list" class="flex flex-wrap gap-2 mt-4 min-h-[40px]"></div>
+      </div>
+
+      <!-- 封面圖片 -->
+      <div>
+        <label class="form-label font-label mb-2 block">封面圖片</label>
+        <input id="input-cover-image" type="file" accept="image/*" class="hidden" />
+        <div id="cover-image-zone" class="relative w-full rounded-3xl overflow-hidden cursor-pointer cover-zone">
+          <div id="cover-image-placeholder"
+            class="absolute inset-0 rounded-3xl flex flex-col items-center justify-center gap-2 nm-sunken">
+            <div class="w-12 h-12 rounded-2xl nm-raised-sm flex items-center justify-center">
+              <span class="material-symbols-outlined clr-muted">add_photo_alternate</span>
+            </div>
+            <p class="font-label txt-base clr-muted">點擊上傳封面圖片（最大 5MB）</p>
+          </div>
+          <img id="cover-image-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden" />
+          <button id="btn-remove-cover" type="button"
+            class="btn-remove-img absolute top-3 right-3 hidden w-9 h-9 rounded-xl flex items-center justify-center z-10">
+            <span class="material-symbols-outlined clr-white txt-xl" style="font-variation-settings:'FILL' 1;">close</span>
+          </button>
+        </div>
       </div>
 
       <!-- 結算方式 -->
       <div>
-        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-4 block">結算方式</label>
+        <label class="form-label font-label mb-4 block">結算方式</label>
         <div class="flex flex-col gap-3">
           <div id="algo-card-itemized" data-algo="itemized"
-            class="nm-card rounded-3xl p-5 cursor-pointer transition-all border-2 border-transparent"
-            style="border-color: #006e2b;">
+            class="nm-card rounded-3xl p-5 cursor-pointer transition-all border-2 border-transparent algo-selected">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-2xl nm-raised-sm flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-primary text-xl">receipt_long</span>
+                <span class="material-symbols-outlined clr-primary">receipt_long</span>
               </div>
               <div>
-                <p class="font-headline font-bold text-on-surface text-sm">逐筆抵銷法</p>
-                <p class="font-body text-xs text-on-surface-variant mt-0.5">保留每筆支出細節，顯示債務來源</p>
+                <p class="font-headline font-bold txt-body clr-surface">逐筆抵銷法</p>
+                <p class="font-body txt-base clr-muted mt-0.5">保留每筆支出細節，顯示債務來源</p>
               </div>
             </div>
           </div>
@@ -196,11 +221,11 @@
             class="nm-card rounded-3xl p-5 cursor-pointer transition-all border-2 border-transparent">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-2xl nm-raised-sm flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-on-surface-variant text-xl">table_restaurant</span>
+                <span class="material-symbols-outlined clr-muted">table_restaurant</span>
               </div>
               <div>
-                <p class="font-headline font-bold text-on-surface text-sm">圓桌法（淨額法）</p>
-                <p class="font-body text-xs text-on-surface-variant mt-0.5">計算最終淨額，最少筆數轉帳結清</p>
+                <p class="font-headline font-bold txt-body clr-surface">圓桌法（淨額法）</p>
+                <p class="font-body txt-base clr-muted mt-0.5">計算最終淨額，最少筆數轉帳結清</p>
               </div>
             </div>
           </div>
@@ -208,10 +233,9 @@
       </div>
     </div>
 
-    <!-- Bottom Action -->
     <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
       <button id="btn-create-project-submit"
-        class="nm-btn-primary w-full py-4 rounded-2xl font-headline font-bold text-white text-base tracking-tight">
+        class="nm-btn-primary w-full py-4 rounded-2xl font-headline">
         建立專案
       </button>
     </div>
@@ -221,51 +245,52 @@
        SCREEN 3: PROJECT DETAIL
   ══════════════════════════════════════════ -->
   <div id="screen-project-detail" class="screen absolute inset-0 flex flex-col">
-    <!-- Top Bar -->
-    <header class="nm-nav flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
       <button id="btn-project-detail-back"
         class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-on-surface text-xl">arrow_back</span>
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
       </button>
-      <span id="detail-project-name" class="font-headline font-bold text-lg text-on-surface tracking-tight flex-1 truncate"></span>
+      <span id="detail-project-name" class="app-header-page-title font-headline flex-1 truncate"></span>
       <button id="btn-go-settlement"
         class="nm-btn-secondary rounded-2xl px-4 py-2 flex items-center gap-1.5 flex-shrink-0">
-        <span class="material-symbols-outlined text-primary text-sm">calculate</span>
-        <span class="font-label font-semibold text-primary text-xs">結算</span>
+        <span class="material-symbols-outlined txt-xl clr-primary">calculate</span>
+        <span class="font-label font-semibold txt-md clr-primary">結算</span>
       </button>
     </header>
 
-    <!-- Content -->
     <div class="flex-1 overflow-y-auto no-scrollbar pb-28">
+
       <!-- Summary Banner -->
       <div class="mx-6 mt-5 banner-primary rounded-3xl p-6">
         <div class="flex justify-between items-start">
           <div>
-            <p class="font-label text-xs uppercase tracking-widest text-white/70 mb-1">總支出</p>
-            <p id="detail-total-amount" class="font-headline font-extrabold text-3xl text-white tracking-tight">NT$0</p>
+            <p class="banner-label font-label">總支出</p>
+            <div class="flex items-baseline gap-1 mt-1">
+              <span id="detail-currency-unit" class="banner-unit font-headline">NT$</span>
+              <span id="detail-total-amount" class="banner-amount font-headline">0</span>
+            </div>
           </div>
           <div class="text-right">
-            <p class="font-label text-xs text-white/70 mb-1">筆數</p>
-            <p id="detail-expense-count" class="font-headline font-bold text-2xl text-white">0</p>
-            <p class="font-label text-xs text-white/70 mt-2 mb-0.5">人均</p>
-            <p id="detail-avg-amount" class="font-headline font-semibold text-base text-white/90">NT$0</p>
+            <p class="banner-label font-label">筆數</p>
+            <p id="detail-expense-count" class="banner-count font-headline">0</p>
+            <p class="banner-label font-label mt-3">人均</p>
+            <p id="detail-avg-amount" class="banner-avg font-headline">NT$0</p>
           </div>
         </div>
       </div>
 
-      <!-- Algo Badge -->
       <div id="detail-algo-badge" class="mx-6 mt-3"></div>
 
-      <!-- Expense List -->
       <div class="px-6 mt-5">
         <div id="expense-list" class="flex flex-col gap-4"></div>
         <div id="expense-empty-state" class="flex flex-col items-center gap-4 py-16">
-          <div class="w-16 h-16 rounded-3xl nm-raised flex items-center justify-center">
-            <span class="material-symbols-outlined text-3xl text-on-surface-variant opacity-30">receipt_long</span>
+          <div class="empty-icon-wrap">
+            <span class="material-symbols-outlined txt-3xl clr-muted" style="opacity:0.25;">receipt_long</span>
           </div>
           <div class="text-center">
-            <p class="font-headline font-bold text-on-surface-variant text-sm">還沒有支出紀錄</p>
-            <p class="font-body text-xs text-outline mt-1">點擊 + 新增第一筆帳目</p>
+            <p class="empty-title font-headline">還沒有支出紀錄</p>
+            <p class="empty-hint font-body mt-1">點擊 + 新增第一筆帳目</p>
           </div>
         </div>
       </div>
@@ -274,22 +299,26 @@
     <!-- FAB -->
     <button id="btn-new-expense"
       class="nm-fab absolute bottom-24 right-6 w-14 h-14 rounded-3xl flex items-center justify-center z-20">
-      <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1;">add</span>
+      <span class="material-symbols-outlined txt-3xl" style="font-variation-settings:'FILL' 1;">add</span>
     </button>
 
     <!-- Bottom Nav -->
-    <nav class="nm-nav absolute bottom-0 left-0 right-0 flex items-center justify-around px-8 pb-6 pt-3 rounded-t-3xl z-10">
-      <button id="detail-nav-home" class="flex flex-col items-center gap-1 opacity-40">
-        <span class="material-symbols-outlined text-on-surface-variant text-2xl">home</span>
-        <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">首頁</span>
+    <nav class="nm-nav absolute bottom-0 left-0 right-0 flex items-center justify-around px-4 pb-6 pt-3 rounded-t-3xl z-10">
+      <button class="nav-item" id="detail-nav-home">
+        <span class="material-symbols-outlined">home</span>
+        <span class="nav-label font-label">首頁</span>
       </button>
-      <button class="flex flex-col items-center gap-1">
-        <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1;">receipt_long</span>
-        <span class="font-label text-[9px] uppercase tracking-widest text-primary">帳目</span>
+      <button class="nav-item active">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+        <span class="nav-label font-label">帳目</span>
       </button>
-      <button id="detail-nav-settlement" class="flex flex-col items-center gap-1 opacity-40">
-        <span class="material-symbols-outlined text-on-surface-variant text-2xl">calculate</span>
-        <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">結算</span>
+      <button class="nav-item" id="detail-nav-settlement">
+        <span class="material-symbols-outlined">calculate</span>
+        <span class="nav-label font-label">結算</span>
+      </button>
+      <button class="nav-item" id="detail-nav-settings">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="nav-label font-label">設定</span>
       </button>
     </nav>
   </div>
@@ -298,79 +327,87 @@
        SCREEN 4: EXPENSE FORM
   ══════════════════════════════════════════ -->
   <div id="screen-expense-form" class="screen absolute inset-0 flex flex-col">
-    <!-- Top Bar -->
-    <header class="nm-nav flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
       <button id="btn-expense-form-back"
         class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-on-surface text-xl">arrow_back</span>
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
       </button>
-      <span id="expense-form-title" class="font-headline font-bold text-xl text-on-surface tracking-tight">新增帳目</span>
+      <span id="expense-form-title" class="app-header-page-title font-headline">新增帳目</span>
     </header>
 
-    <!-- Content -->
     <div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-32 flex flex-col gap-6">
 
-      <!-- 項目名稱 -->
+      <!-- 項目名稱 + Icon -->
       <div>
-        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2 block">項目名稱</label>
-        <input id="input-expense-name" type="text"
-          placeholder="例如：晚餐、計程車"
-          class="nm-input w-full rounded-2xl px-5 py-4 font-body text-on-surface placeholder-on-surface-variant/40 text-sm" />
+        <label class="form-label font-label mb-2 block">項目名稱</label>
+        <div class="flex gap-2 items-center">
+          <button id="btn-icon-picker" type="button"
+            class="nm-btn-secondary w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center active:scale-90"
+            style="transition:transform 0.1s ease;">
+            <span id="icon-picker-current" class="material-symbols-outlined txt-2xl clr-primary" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+          </button>
+          <input id="input-expense-name" type="text" placeholder="例如：晚餐、計程車"
+            class="nm-input flex-1 rounded-2xl px-4 py-4" />
+        </div>
       </div>
 
       <!-- 日期 + 金額 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2 block">日期</label>
+          <label class="form-label font-label mb-2 block">日期</label>
           <input id="input-expense-date" type="date"
-            class="nm-input w-full rounded-2xl px-4 py-4 font-body text-on-surface text-sm" />
+            class="nm-input w-full rounded-2xl px-4 py-4" />
         </div>
         <div>
-          <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2 block">金額 NT$</label>
-          <input id="input-expense-amount" type="number" placeholder="0" min="0"
-            class="nm-input w-full rounded-2xl px-4 py-4 font-body text-on-surface placeholder-on-surface-variant/40 text-sm" />
+          <label class="form-label font-label mb-2 block">金額</label>
+          <div class="nm-input-group rounded-2xl px-4">
+            <input id="input-expense-amount" type="number" placeholder="0" min="0"
+              class="flex-1 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;background:transparent;border:none;outline:none;color:var(--clr-on-surface);" />
+            <select id="input-expense-currency">
+              <!-- populated by JS -->
+            </select>
+          </div>
+          <p id="expense-conversion-preview" class="hidden txt-sm clr-muted font-label mt-1.5 px-2"></p>
         </div>
       </div>
 
       <!-- 代墊人 -->
       <div>
-        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-3 block">代墊人</label>
+        <label class="form-label font-label mb-3 block">代墊人</label>
         <div id="payer-selector" class="flex flex-wrap gap-2"></div>
       </div>
 
       <!-- 分攤方式 -->
       <div>
-        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-3 block">分攤方式</label>
-        <!-- Tab Group -->
+        <label class="form-label font-label mb-3 block">分攤方式</label>
         <div class="nm-sunken rounded-2xl p-1.5 flex gap-1 mb-4">
           <button id="split-tab-all" data-split="all"
-            class="split-tab-active flex-1 rounded-xl py-2.5 text-xs font-label font-semibold transition-all">
+            class="split-tab-active flex-1 rounded-xl py-2.5 font-label font-semibold transition-all">
             全部均分
           </button>
           <button id="split-tab-except" data-split="except"
-            class="split-tab-inactive flex-1 rounded-xl py-2.5 text-xs font-label transition-all">
+            class="split-tab-inactive flex-1 rounded-xl py-2.5 font-label transition-all">
             除了…
           </button>
           <button id="split-tab-include" data-split="include"
-            class="split-tab-inactive flex-1 rounded-xl py-2.5 text-xs font-label transition-all">
+            class="split-tab-inactive flex-1 rounded-xl py-2.5 font-label transition-all">
             指定…
           </button>
         </div>
-        <!-- Split panel -->
         <div id="split-detail-panel" class="hidden flex-col gap-3">
-          <p id="split-panel-label" class="font-label text-xs text-on-surface-variant"></p>
+          <p id="split-panel-label" class="font-label txt-md clr-muted"></p>
           <div id="split-member-chips" class="flex flex-wrap gap-2"></div>
           <div class="nm-raised-sm rounded-2xl px-4 py-3">
-            <p id="split-preview" class="font-body text-xs text-primary font-semibold"></p>
+            <p id="split-preview" class="font-body font-semibold txt-md clr-primary"></p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Action -->
     <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
       <button id="btn-expense-form-submit"
-        class="nm-btn-primary w-full py-4 rounded-2xl font-headline font-bold text-white text-base tracking-tight">
+        class="nm-btn-primary w-full py-4 rounded-2xl font-headline">
         儲存帳目
       </button>
     </div>
@@ -380,63 +417,191 @@
        SCREEN 5: SETTLEMENT
   ══════════════════════════════════════════ -->
   <div id="screen-settlement" class="screen absolute inset-0 flex flex-col">
-    <!-- Top Bar -->
-    <header class="nm-nav flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
       <button id="btn-settlement-back"
         class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-on-surface text-xl">arrow_back</span>
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
       </button>
-      <h2 class="font-headline font-bold text-xl text-on-surface tracking-tight flex-1">結算明細</h2>
+      <h2 class="app-header-page-title font-headline flex-1">結算明細</h2>
       <button id="btn-toggle-algo"
         class="nm-btn-secondary rounded-2xl px-3 py-2 flex items-center gap-1.5 flex-shrink-0">
-        <span class="material-symbols-outlined text-primary text-sm">swap_horiz</span>
-        <span id="btn-toggle-algo-label" class="font-label font-semibold text-primary text-xs">切換</span>
+        <span class="material-symbols-outlined txt-xl clr-primary">swap_horiz</span>
+        <span id="btn-toggle-algo-label" class="font-label font-semibold txt-md clr-primary">切換</span>
       </button>
     </header>
 
-    <!-- Content -->
-    <div class="flex-1 overflow-y-auto no-scrollbar pb-8">
+    <div class="flex-1 overflow-y-auto no-scrollbar pb-28">
+
       <!-- Stats Row -->
-      <div id="settlement-stats" class="grid grid-cols-3 gap-3 px-6 mt-5">
-        <div class="nm-card rounded-2xl p-4 flex flex-col items-center gap-1">
-          <span class="material-symbols-outlined text-primary text-xl">payments</span>
-          <p class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">總支出</p>
-          <p id="stat-total" class="font-headline font-bold text-sm text-on-surface">NT$0</p>
+      <div class="grid grid-cols-3 gap-3 px-6 mt-5">
+        <div class="stat-card">
+          <span class="material-symbols-outlined txt-2xl clr-primary">payments</span>
+          <p class="stat-label font-label">總支出</p>
+          <p id="stat-total" class="stat-value font-headline">NT$0</p>
         </div>
-        <div class="nm-card rounded-2xl p-4 flex flex-col items-center gap-1">
-          <span class="material-symbols-outlined text-primary text-xl">group</span>
-          <p class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">人數</p>
-          <p id="stat-members" class="font-headline font-bold text-sm text-on-surface">0 人</p>
+        <div class="stat-card">
+          <span class="material-symbols-outlined txt-2xl clr-primary">group</span>
+          <p class="stat-label font-label">人數</p>
+          <p id="stat-members" class="stat-value font-headline">0 人</p>
         </div>
-        <div class="nm-card rounded-2xl p-4 flex flex-col items-center gap-1">
-          <span class="material-symbols-outlined text-primary text-xl">receipt</span>
-          <p class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">筆數</p>
-          <p id="stat-expenses" class="font-headline font-bold text-sm text-on-surface">0 筆</p>
+        <div class="stat-card">
+          <span class="material-symbols-outlined txt-2xl clr-primary">receipt</span>
+          <p class="stat-label font-label">筆數</p>
+          <p id="stat-expenses" class="stat-value font-headline">0 筆</p>
         </div>
       </div>
 
       <!-- Algo Indicator -->
       <div class="mx-6 mt-4 nm-raised-sm rounded-2xl p-4 flex items-center gap-3">
-        <span id="algo-icon-display" class="material-symbols-outlined text-primary text-2xl">receipt_long</span>
+        <span id="algo-icon-display" class="material-symbols-outlined txt-3xl clr-primary">receipt_long</span>
         <div>
-          <p id="algo-name-display" class="font-headline font-bold text-sm text-on-surface">逐筆抵銷法</p>
-          <p id="algo-desc-display" class="font-body text-xs text-on-surface-variant mt-0.5">保留每筆支出的債務來源細節</p>
+          <p id="algo-name-display" class="font-headline font-bold txt-body clr-surface">逐筆抵銷法</p>
+          <p id="algo-desc-display" class="font-body txt-base clr-muted mt-0.5">保留每筆支出的債務來源細節</p>
         </div>
+      </div>
+
+      <!-- Balance List Header -->
+      <div class="px-6 mt-8 flex items-center justify-between mb-4">
+        <p class="section-label font-label">結算清單</p>
+        <button id="btn-export-excel"
+          class="nm-btn-secondary rounded-xl px-3 py-2 flex items-center gap-1.5">
+          <span class="material-symbols-outlined txt-xl clr-primary">download</span>
+          <span class="font-label font-semibold txt-sm clr-primary">匯出 Excel</span>
+        </button>
       </div>
 
       <!-- Balance List -->
-      <div id="settlement-balance-list" class="px-6 mt-4 flex flex-col gap-4"></div>
+      <div id="settlement-balance-list" class="px-6 flex flex-col gap-4"></div>
 
       <!-- All Settled -->
       <div id="settlement-all-settled" class="hidden flex-col items-center gap-4 py-20 px-6">
-        <div class="w-20 h-20 rounded-3xl nm-raised flex items-center justify-center">
-          <span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        <div class="empty-icon-wrap w-20 h-20 rounded-3xl">
+          <span class="material-symbols-outlined txt-4xl clr-primary" style="font-variation-settings:'FILL' 1;">check_circle</span>
         </div>
         <div class="text-center">
-          <p class="font-headline font-bold text-xl text-primary">已完全結清！</p>
-          <p class="font-body text-sm text-on-surface-variant mt-1">所有帳目均已結算完畢</p>
+          <p class="font-headline font-bold txt-2xl clr-primary">已完全結清！</p>
+          <p class="font-body txt-md clr-muted mt-1">所有帳目均已結算完畢</p>
         </div>
       </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="nm-nav absolute bottom-0 left-0 right-0 flex items-center justify-around px-4 pb-6 pt-3 rounded-t-3xl z-10">
+      <button class="nav-item" id="settlement-nav-home">
+        <span class="material-symbols-outlined">home</span>
+        <span class="nav-label font-label">首頁</span>
+      </button>
+      <button class="nav-item" id="settlement-nav-items">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="nav-label font-label">帳目</span>
+      </button>
+      <button class="nav-item active">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">calculate</span>
+        <span class="nav-label font-label">結算</span>
+      </button>
+      <button class="nav-item" id="settlement-nav-settings">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="nav-label font-label">設定</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 6: PROJECT SETTINGS
+  ══════════════════════════════════════════ -->
+  <div id="screen-settings" class="screen absolute inset-0 flex flex-col">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+      <button id="btn-settings-back"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
+      </button>
+      <h2 class="app-header-page-title font-headline flex-1">專案設定</h2>
+      <button id="btn-fetch-rates" class="settings-rate-refresh-btn">
+        <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' 1;">sync</span>
+        <span class="font-label txt-sm">更新匯率</span>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-32 flex flex-col gap-7">
+
+      <!-- 貨幣設定 -->
+      <div>
+        <h3 class="section-label font-label mb-4">貨幣設定</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label font-label mb-2 block">慣用記帳貨幣</label>
+            <select id="settings-base-currency" class="nm-input w-full rounded-2xl px-5 py-4">
+              <!-- populated by JS -->
+            </select>
+          </div>
+          <div>
+            <label class="form-label font-label mb-2 block">新增帳目預設貨幣</label>
+            <select id="settings-default-input-currency" class="nm-input w-full rounded-2xl px-5 py-4">
+              <!-- populated by JS -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 匯率設定 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="section-label font-label">匯率設定</h3>
+          <span id="settings-rates-updated" class="txt-xs clr-muted font-label"></span>
+        </div>
+        <p class="txt-sm clr-muted font-label mb-4">1 外幣 = ? 慣用貨幣（可手動修改）</p>
+        <div id="settings-rates-list" class="flex flex-col gap-2">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
+      <button id="btn-settings-save" class="nm-btn-primary w-full py-4 rounded-2xl font-headline">
+        儲存設定
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Modal: 編輯成員 ── -->
+  <div id="modal-edit-project" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-10 flex flex-col gap-5 modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="flex items-center justify-between">
+        <h3 class="font-headline font-bold txt-xl clr-surface">編輯成員</h3>
+        <button id="btn-edit-modal-close"
+          class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+      <div id="edit-modal-members" class="flex flex-wrap gap-2"></div>
+      <div class="nm-input-group rounded-2xl">
+        <input id="input-edit-member-name" type="text" placeholder="新增成員名稱"
+          class="flex-1 px-4 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;" />
+        <select id="select-edit-member-role">
+          <option value="editor">編輯者</option>
+          <option value="viewer">檢視者</option>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <button id="btn-edit-add-member"
+          class="nm-btn-secondary flex-1 py-3 rounded-2xl font-label font-semibold txt-body clr-surface">
+          新增成員
+        </button>
+        <button id="btn-edit-modal-save"
+          class="nm-btn-primary flex-1 py-3 rounded-2xl font-headline">
+          儲存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Icon Picker Popup ── -->
+  <div id="icon-picker-popup" class="hidden absolute z-50 rounded-3xl p-4 icon-picker-popup">
+    <div class="grid grid-cols-5 gap-2">
+      <!-- populated by JS -->
     </div>
   </div>
 
@@ -444,673 +609,10 @@
 
 <!-- LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<!-- Logic Layer -->
+<script src="js/customer_script.js"></script>
+<!-- UI Layer -->
+<script src="js/script.js"></script>
 
-<script>
-// ============================================================
-// BLOCK 1: Storage Layer
-// ============================================================
-function getAllProjects() {
-  return JSON.parse(localStorage.getItem('clsp_projects') || '[]');
-}
-function saveProjects(list) {
-  localStorage.setItem('clsp_projects', JSON.stringify(list));
-}
-function saveProject(p) {
-  const list = getAllProjects();
-  const i = list.findIndex(x => x.id === p.id);
-  if (i >= 0) list[i] = p; else list.push(p);
-  saveProjects(list);
-}
-function deleteProject(pid) {
-  saveProjects(getAllProjects().filter(p => p.id !== pid));
-  localStorage.removeItem('clsp_expenses_' + pid);
-}
-function getExpenses(pid) {
-  return JSON.parse(localStorage.getItem('clsp_expenses_' + pid) || '[]');
-}
-function saveExpense(e) {
-  const list = getExpenses(e.projectId);
-  const i = list.findIndex(x => x.id === e.id);
-  if (i >= 0) list[i] = e; else list.push(e);
-  localStorage.setItem('clsp_expenses_' + e.projectId, JSON.stringify(list));
-}
-function deleteExpense(pid, eid) {
-  const list = getExpenses(pid).filter(e => e.id !== eid);
-  localStorage.setItem('clsp_expenses_' + pid, JSON.stringify(list));
-}
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-// ============================================================
-// BLOCK 2: Algorithm Layer
-// ============================================================
-function getParticipants(expense, members) {
-  if (expense.splitType === 'all') return members.map(m => m.id);
-  if (expense.splitType === 'except') return members.map(m => m.id).filter(id => !expense.splitMembers.includes(id));
-  return expense.splitMembers.slice();
-}
-
-function calcShares(amount, participantIds) {
-  const n = participantIds.length;
-  if (n === 0) return {};
-  const base = Math.floor(amount / n);
-  const rem = amount - base * n;
-  const shares = {};
-  participantIds.forEach((id, i) => { shares[id] = base + (i === n - 1 ? rem : 0); });
-  return shares;
-}
-
-function calculateItemized(members, expenses) {
-  const nameOf = {};
-  members.forEach(m => nameOf[m.id] = m.name);
-  return expenses
-    .filter(e => e.amount > 0)
-    .map(e => {
-      const pids = getParticipants(e, members);
-      const shares = calcShares(e.amount, pids);
-      const debts = pids
-        .filter(pid => pid !== e.payerId)
-        .map(pid => ({
-          debtorId: pid, debtorName: nameOf[pid] || '?',
-          creditorId: e.payerId, creditorName: nameOf[e.payerId] || '?',
-          amount: shares[pid]
-        }));
-      return { expenseId: e.id, expenseName: e.name, expenseAmount: e.amount, debts };
-    });
-}
-
-function calculateRoundtable(members, expenses) {
-  const nameOf = {};
-  const net = {};
-  members.forEach(m => { nameOf[m.id] = m.name; net[m.id] = 0; });
-
-  expenses.filter(e => e.amount > 0).forEach(e => {
-    const pids = getParticipants(e, members);
-    const shares = calcShares(e.amount, pids);
-    net[e.payerId] = (net[e.payerId] || 0) + e.amount;
-    pids.forEach(pid => { net[pid] = (net[pid] || 0) - shares[pid]; });
-  });
-
-  const EPS = 0.01;
-  const pos = members.filter(m => net[m.id] > EPS)
-    .map(m => ({ id: m.id, name: m.name, b: net[m.id] }))
-    .sort((a, b) => b.b - a.b);
-  const neg = members.filter(m => net[m.id] < -EPS)
-    .map(m => ({ id: m.id, name: m.name, b: net[m.id] }))
-    .sort((a, b) => a.b - b.b);
-
-  const netBalances = members.map(m => ({
-    memberId: m.id, memberName: m.name,
-    balance: Math.round(net[m.id] * 100) / 100
-  }));
-
-  const transactions = [];
-  let pi = 0, ni = 0;
-  while (pi < pos.length && ni < neg.length) {
-    const cr = pos[pi], db = neg[ni];
-    const amt = Math.round(Math.min(cr.b, Math.abs(db.b)) * 100) / 100;
-    if (amt >= EPS) transactions.push({
-      debtorId: db.id, debtorName: db.name,
-      creditorId: cr.id, creditorName: cr.name, amount: amt
-    });
-    cr.b -= amt; db.b += amt;
-    if (cr.b < EPS) pi++;
-    if (Math.abs(db.b) < EPS) ni++;
-  }
-  return { netBalances, transactions };
-}
-
-// ============================================================
-// BLOCK 3: App State
-// ============================================================
-const AppState = {
-  currentProjectId: null,
-  currentExpenseId: null,
-  pendingMembers: [],
-  pendingAlgorithm: 'itemized',
-  liffProfile: null,
-  currentSplitType: 'all'
-};
-
-// ============================================================
-// BLOCK 4: Navigation
-// ============================================================
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const t = document.getElementById(id);
-  if (t) t.classList.add('active');
-}
-
-// ============================================================
-// BLOCK 5: Helpers
-// ============================================================
-function esc(s) {
-  return String(s || '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function fmtAmt(n) {
-  return Number(n || 0).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
-}
-function fmtDate(s) {
-  if (!s) return '';
-  const d = new Date(s + 'T00:00:00');
-  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-}
-function splitDesc(e, members) {
-  if (e.splitType === 'all') return `全體 ${members.length} 人均分`;
-  if (e.splitType === 'except') {
-    const excl = e.splitMembers.map(id => (members.find(m=>m.id===id)||{name:'?'}).name).join('、');
-    return `排除 ${excl}，${members.length - e.splitMembers.length} 人均分`;
-  }
-  const incl = e.splitMembers.map(id => (members.find(m=>m.id===id)||{name:'?'}).name).join('、');
-  return `指定 ${incl} 均分`;
-}
-
-// ============================================================
-// BLOCK 6: Renderers
-// ============================================================
-function renderHomeScreen() {
-  const projects = getAllProjects();
-  const list = document.getElementById('home-project-list');
-  const empty = document.getElementById('home-empty-state');
-  const count = document.getElementById('home-project-count');
-  count.textContent = `${projects.length} 個`;
-
-  if (projects.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'flex';
-    return;
-  }
-  empty.style.display = 'none';
-
-  list.innerHTML = projects.map(p => {
-    const expenses = getExpenses(p.id);
-    const total = expenses.reduce((s, e) => s + e.amount, 0);
-    const initials = p.members.slice(0, 4).map(m =>
-      `<span class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-[9px] font-bold text-on-surface-variant -ml-1 first:ml-0 nm-raised-sm">${esc(m.name.charAt(0))}</span>`
-    ).join('');
-    const badge = p.status === 'active'
-      ? `<span class="chip-inactive rounded-full text-[9px] font-label font-bold px-2 py-0.5 uppercase">進行中</span>`
-      : `<span class="rounded-full bg-surface-container text-outline text-[9px] font-bold px-2 py-0.5 uppercase">已結算</span>`;
-    return `
-      <div class="nm-card rounded-3xl p-5 cursor-pointer project-card" data-pid="${p.id}">
-        <div class="flex justify-between items-start mb-3">
-          <span class="font-headline font-bold text-base text-on-surface tracking-tight">${esc(p.name)}</span>
-          ${badge}
-        </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center ml-1">${initials}</div>
-          <span class="font-body text-xs text-on-surface-variant">${fmtDate(p.createdDate)}</span>
-        </div>
-        <div class="flex items-center justify-between mt-3 pt-3" style="border-top: none;">
-          <span class="font-headline font-semibold text-sm text-primary">NT$${fmtAmt(total)}</span>
-          <button class="delete-project-btn w-8 h-8 rounded-xl nm-btn-secondary flex items-center justify-center" data-pid="${p.id}">
-            <span class="material-symbols-outlined text-outline text-sm">delete</span>
-          </button>
-        </div>
-      </div>`;
-  }).join('');
-
-  list.querySelectorAll('.project-card').forEach(card => {
-    card.addEventListener('click', e => {
-      if (e.target.closest('.delete-project-btn')) return;
-      navigateToProject(card.dataset.pid);
-    });
-  });
-  list.querySelectorAll('.delete-project-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (confirm('確定要刪除這個專案？所有帳目將一併刪除。')) {
-        deleteProject(btn.dataset.pid);
-        renderHomeScreen();
-      }
-    });
-  });
-}
-
-function renderProjectDetail(pid) {
-  const project = getAllProjects().find(p => p.id === pid);
-  if (!project) { showScreen('screen-home'); return; }
-  const expenses = getExpenses(pid);
-  const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const avg = project.members.length ? Math.round(total / project.members.length) : 0;
-
-  document.getElementById('detail-project-name').textContent = project.name;
-  document.getElementById('detail-total-amount').textContent = 'NT$' + fmtAmt(total);
-  document.getElementById('detail-expense-count').textContent = expenses.length;
-  document.getElementById('detail-avg-amount').textContent = 'NT$' + fmtAmt(avg);
-
-  const algoBadge = document.getElementById('detail-algo-badge');
-  if (project.algorithm === 'itemized') {
-    algoBadge.innerHTML = `<span class="inline-flex items-center gap-1 chip-inactive rounded-full px-3 py-1 text-xs font-label font-semibold"><span class="material-symbols-outlined text-sm">receipt</span>逐筆抵銷法</span>`;
-  } else {
-    algoBadge.innerHTML = `<span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-label font-semibold" style="background:#d6fbe0;color:#005f24;"><span class="material-symbols-outlined text-sm">table_restaurant</span>圓桌法</span>`;
-  }
-
-  const list = document.getElementById('expense-list');
-  const empty = document.getElementById('expense-empty-state');
-  if (expenses.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'flex';
-    return;
-  }
-  empty.style.display = 'none';
-
-  list.innerHTML = [...expenses]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .map(e => {
-      const payer = project.members.find(m => m.id === e.payerId);
-      return `
-        <div class="nm-card rounded-3xl p-5 expense-item">
-          <div class="flex justify-between items-start mb-2">
-            <span class="font-headline font-bold text-base text-on-surface tracking-tight">${esc(e.name)}</span>
-            <span class="font-headline font-bold text-primary">NT$${fmtAmt(e.amount)}</span>
-          </div>
-          <div class="flex items-center gap-2 mb-3">
-            <span class="font-label text-xs text-on-surface-variant">${fmtDate(e.date)}</span>
-            <span class="chip-inactive rounded-full text-xs px-2 py-0.5 font-label">${esc(payer ? payer.name : '?')} 代墊</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="font-body text-xs text-on-surface-variant">${esc(splitDesc(e, project.members))}</span>
-            <div class="flex gap-2">
-              <button class="edit-exp-btn nm-btn-secondary w-8 h-8 rounded-xl flex items-center justify-center" data-eid="${e.id}">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">edit</span>
-              </button>
-              <button class="del-exp-btn nm-btn-secondary w-8 h-8 rounded-xl flex items-center justify-center" data-eid="${e.id}">
-                <span class="material-symbols-outlined text-outline text-sm">delete</span>
-              </button>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-
-  list.querySelectorAll('.edit-exp-btn').forEach(b =>
-    b.addEventListener('click', () => navigateToExpenseForm(pid, b.dataset.eid)));
-  list.querySelectorAll('.del-exp-btn').forEach(b =>
-    b.addEventListener('click', () => {
-      if (confirm('確定要刪除這筆帳目？')) {
-        deleteExpense(pid, b.dataset.eid);
-        renderProjectDetail(pid);
-      }
-    }));
-}
-
-function renderExpenseForm(pid, eid) {
-  const project = getAllProjects().find(p => p.id === pid);
-  if (!project) return;
-  const isEdit = !!eid;
-  const expense = isEdit ? getExpenses(pid).find(e => e.id === eid) : null;
-
-  document.getElementById('expense-form-title').textContent = isEdit ? '編輯帳目' : '新增帳目';
-  document.getElementById('input-expense-name').value = expense?.name || '';
-  document.getElementById('input-expense-date').value = expense?.date || new Date().toISOString().split('T')[0];
-  document.getElementById('input-expense-amount').value = expense?.amount || '';
-
-  // Payer chips
-  const payerSel = document.getElementById('payer-selector');
-  payerSel.innerHTML = project.members.map(m => {
-    const isSel = expense?.payerId === m.id;
-    return `<button class="payer-chip rounded-full px-4 py-2 text-sm font-label font-semibold transition-all ${isSel ? 'payer-selected' : 'chip-inactive'}" data-mid="${m.id}">${esc(m.name)}</button>`;
-  }).join('');
-  payerSel.querySelectorAll('.payer-chip').forEach(c => {
-    c.addEventListener('click', () => {
-      payerSel.querySelectorAll('.payer-chip').forEach(x => {
-        x.className = x.className.replace('payer-selected', 'chip-inactive');
-      });
-      c.className = c.className.replace('chip-inactive', 'payer-selected');
-      updateSplitPreview(project);
-    });
-  });
-
-  // Split tabs
-  const initSplit = expense?.splitType || 'all';
-  AppState.currentSplitType = initSplit;
-  updateSplitTabs(initSplit);
-  renderSplitMemberChips(project, expense?.splitMembers || []);
-
-  document.querySelectorAll('[data-split]').forEach(tab => {
-    tab.addEventListener('click', () => {
-      AppState.currentSplitType = tab.dataset.split;
-      updateSplitTabs(tab.dataset.split);
-      renderSplitMemberChips(project, []);
-      updateSplitPreview(project);
-    });
-  });
-
-  document.getElementById('input-expense-amount').addEventListener('input', () => updateSplitPreview(project));
-}
-
-function updateSplitTabs(active) {
-  ['all', 'except', 'include'].forEach(t => {
-    const el = document.getElementById('split-tab-' + t);
-    if (el) {
-      el.className = el.className.replace(/split-tab-(active|inactive)/g, '');
-      el.className += ' ' + (t === active ? 'split-tab-active' : 'split-tab-inactive');
-    }
-  });
-  const panel = document.getElementById('split-detail-panel');
-  const label = document.getElementById('split-panel-label');
-  if (active === 'all') {
-    panel.style.display = 'none';
-  } else {
-    panel.style.display = 'flex';
-    label.textContent = active === 'except' ? '選擇排除的成員（其餘人均分）' : '選擇參與分攤的成員';
-  }
-}
-
-function renderSplitMemberChips(project, selected) {
-  const container = document.getElementById('split-member-chips');
-  container.innerHTML = project.members.map(m => {
-    const isSel = selected.includes(m.id);
-    return `<button class="split-member-chip rounded-full px-4 py-2 text-sm font-label font-semibold transition-all ${isSel ? 'payer-selected' : 'chip-inactive'}" data-mid="${m.id}">${esc(m.name)}</button>`;
-  }).join('');
-  container.querySelectorAll('.split-member-chip').forEach(c => {
-    c.addEventListener('click', () => {
-      c.className = c.className.includes('payer-selected')
-        ? c.className.replace('payer-selected', 'chip-inactive')
-        : c.className.replace('chip-inactive', 'payer-selected');
-      updateSplitPreview(project);
-    });
-  });
-  updateSplitPreview(project);
-}
-
-function updateSplitPreview(project) {
-  const amount = parseFloat(document.getElementById('input-expense-amount').value) || 0;
-  const splitType = AppState.currentSplitType;
-  const selectedIds = Array.from(document.querySelectorAll('.split-member-chip.payer-selected')).map(c => c.dataset.mid);
-
-  let pids;
-  if (splitType === 'all') pids = project.members.map(m => m.id);
-  else if (splitType === 'except') pids = project.members.map(m => m.id).filter(id => !selectedIds.includes(id));
-  else pids = selectedIds;
-
-  const preview = document.getElementById('split-preview');
-  if (pids.length === 0) { preview.textContent = '請選擇分攤成員'; return; }
-  const share = amount > 0 ? Math.floor(amount / pids.length) : 0;
-  const names = pids.map(id => (project.members.find(m => m.id === id) || {name: '?'}).name);
-  preview.textContent = `由 ${names.join('、')} ${pids.length} 人均分，每人 NT$${fmtAmt(share)}`;
-}
-
-function renderSettlement(pid) {
-  const project = getAllProjects().find(p => p.id === pid);
-  if (!project) return;
-  const expenses = getExpenses(pid);
-  const total = expenses.reduce((s, e) => s + e.amount, 0);
-
-  document.getElementById('stat-total').textContent = 'NT$' + fmtAmt(total);
-  document.getElementById('stat-members').textContent = project.members.length + ' 人';
-  document.getElementById('stat-expenses').textContent = expenses.length + ' 筆';
-
-  const isRound = project.algorithm === 'roundtable';
-  document.getElementById('algo-icon-display').textContent = isRound ? 'table_restaurant' : 'receipt_long';
-  document.getElementById('algo-name-display').textContent = isRound ? '圓桌法（淨額法）' : '逐筆抵銷法';
-  document.getElementById('algo-desc-display').textContent = isRound ? '計算最終淨額，以最少筆數轉帳結清' : '保留每筆支出的債務來源細節';
-  document.getElementById('btn-toggle-algo-label').textContent = isRound ? '切換逐筆' : '切換圓桌';
-
-  const list = document.getElementById('settlement-balance-list');
-  const allSettled = document.getElementById('settlement-all-settled');
-
-  if (expenses.length === 0) {
-    list.innerHTML = '';
-    allSettled.style.display = 'flex';
-    return;
-  }
-  allSettled.style.display = 'none';
-
-  if (isRound) {
-    const { netBalances, transactions } = calculateRoundtable(project.members, expenses);
-    if (transactions.length === 0) {
-      list.innerHTML = '';
-      allSettled.style.display = 'flex';
-      return;
-    }
-    const balanceChips = netBalances.map(nb => {
-      const cls = nb.balance > 0.01 ? 'debt-creditor' : nb.balance < -0.01 ? 'debt-debtor' : 'chip-inactive';
-      const sign = nb.balance > 0.01 ? '+' : '';
-      return `<span class="rounded-full px-3 py-1.5 text-xs font-label font-bold ${cls}">${esc(nb.memberName)} ${sign}NT$${fmtAmt(Math.abs(nb.balance))}</span>`;
-    }).join('');
-
-    const txRows = transactions.map(t => `
-      <div class="nm-card rounded-3xl p-5 flex items-center gap-3">
-        <span class="debt-debtor rounded-full px-3 py-1.5 text-sm font-label font-bold">${esc(t.debtorName)}</span>
-        <span class="material-symbols-outlined text-primary text-xl flex-shrink-0">arrow_forward</span>
-        <span class="debt-creditor rounded-full px-3 py-1.5 text-sm font-label font-bold">${esc(t.creditorName)}</span>
-        <span class="font-headline font-bold text-primary ml-auto">NT$${fmtAmt(t.amount)}</span>
-      </div>`).join('');
-
-    list.innerHTML = `
-      <div>
-        <p class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-3">淨額概覽</p>
-        <div class="flex flex-wrap gap-2 mb-5">${balanceChips}</div>
-        <p class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-3">最少轉帳方案</p>
-        <div class="flex flex-col gap-3">${txRows}</div>
-      </div>`;
-  } else {
-    const result = calculateItemized(project.members, expenses);
-    const allEmpty = result.every(r => r.debts.length === 0);
-    if (allEmpty) { list.innerHTML = ''; allSettled.style.display = 'flex'; return; }
-    list.innerHTML = result.filter(r => r.debts.length > 0).map(r => {
-      const rows = r.debts.map(d => `
-        <div class="flex items-center gap-2 mt-2 pl-1">
-          <span class="debt-debtor rounded-full px-2.5 py-1 text-xs font-label font-bold">${esc(d.debtorName)}</span>
-          <span class="material-symbols-outlined text-outline text-sm">arrow_forward</span>
-          <span class="debt-creditor rounded-full px-2.5 py-1 text-xs font-label font-bold">${esc(d.creditorName)}</span>
-          <span class="font-label font-semibold text-sm text-on-surface ml-auto">NT$${fmtAmt(d.amount)}</span>
-        </div>`).join('');
-      return `
-        <div class="nm-card rounded-3xl p-5">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="material-symbols-outlined text-primary text-sm">receipt</span>
-            <span class="font-headline font-semibold text-sm text-on-surface flex-1">${esc(r.expenseName)}</span>
-            <span class="font-headline font-bold text-primary text-sm">NT$${fmtAmt(r.expenseAmount)}</span>
-          </div>
-          ${rows}
-        </div>`;
-    }).join('');
-  }
-}
-
-// ============================================================
-// BLOCK 7: Navigation Helpers
-// ============================================================
-function navigateToProject(pid) {
-  AppState.currentProjectId = pid;
-  renderProjectDetail(pid);
-  showScreen('screen-project-detail');
-}
-function navigateToExpenseForm(pid, eid) {
-  AppState.currentExpenseId = eid;
-  renderExpenseForm(pid, eid);
-  showScreen('screen-expense-form');
-}
-
-// ============================================================
-// BLOCK 8: Pending Member UI
-// ============================================================
-function renderPendingMemberChips() {
-  const container = document.getElementById('member-chip-list');
-  const badge = document.getElementById('member-count-badge');
-  badge.textContent = AppState.pendingMembers.length + ' 人';
-  container.innerHTML = AppState.pendingMembers.map(m => `
-    <span class="chip-inactive rounded-full px-3 py-1.5 text-sm font-label flex items-center gap-1.5">
-      ${esc(m.name)}
-      <button class="remove-member-btn text-outline" data-mid="${m.id}">
-        <span class="material-symbols-outlined text-sm" style="font-size:14px;">close</span>
-      </button>
-    </span>`).join('');
-  container.querySelectorAll('.remove-member-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      AppState.pendingMembers = AppState.pendingMembers.filter(m => m.id !== b.dataset.mid);
-      renderPendingMemberChips();
-    });
-  });
-}
-
-function resetCreateForm() {
-  document.getElementById('input-project-name').value = '';
-  document.getElementById('input-new-member-name').value = '';
-  AppState.pendingMembers = [];
-  AppState.pendingAlgorithm = 'itemized';
-  renderPendingMemberChips();
-  document.getElementById('algo-card-itemized').style.borderColor = '#006e2b';
-  document.getElementById('algo-card-roundtable').style.borderColor = 'transparent';
-}
-
-// ============================================================
-// BLOCK 9: Event Bindings
-// ============================================================
-function bindAllEvents() {
-  // ── Home ──
-  document.getElementById('btn-new-project').addEventListener('click', () => {
-    resetCreateForm();
-    showScreen('screen-create-project');
-  });
-
-  // ── Create Project ──
-  document.getElementById('btn-create-project-back').addEventListener('click', () => showScreen('screen-home'));
-
-  document.getElementById('btn-add-member').addEventListener('click', () => {
-    const inp = document.getElementById('input-new-member-name');
-    const name = inp.value.trim();
-    if (!name) return;
-    AppState.pendingMembers.push({ id: generateId(), name });
-    inp.value = '';
-    renderPendingMemberChips();
-  });
-  document.getElementById('input-new-member-name').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('btn-add-member').click();
-  });
-
-  document.querySelectorAll('[data-algo]').forEach(card => {
-    card.addEventListener('click', () => {
-      AppState.pendingAlgorithm = card.dataset.algo;
-      document.getElementById('algo-card-itemized').style.borderColor = card.dataset.algo === 'itemized' ? '#006e2b' : 'transparent';
-      document.getElementById('algo-card-roundtable').style.borderColor = card.dataset.algo === 'roundtable' ? '#006e2b' : 'transparent';
-    });
-  });
-
-  document.getElementById('btn-create-project-submit').addEventListener('click', () => {
-    const name = document.getElementById('input-project-name').value.trim();
-    if (!name) { alert('請輸入專案名稱'); return; }
-    if (AppState.pendingMembers.length < 2) { alert('至少需要 2 位成員'); return; }
-    const project = {
-      id: generateId(),
-      name,
-      createdDate: new Date().toISOString(),
-      members: AppState.pendingMembers.slice(),
-      algorithm: AppState.pendingAlgorithm,
-      status: 'active'
-    };
-    saveProject(project);
-    renderHomeScreen();
-    showScreen('screen-home');
-  });
-
-  // ── Project Detail ──
-  document.getElementById('btn-project-detail-back').addEventListener('click', () => {
-    renderHomeScreen();
-    showScreen('screen-home');
-  });
-  document.getElementById('detail-nav-home').addEventListener('click', () => {
-    renderHomeScreen();
-    showScreen('screen-home');
-  });
-  document.getElementById('detail-nav-settlement').addEventListener('click', () => {
-    renderSettlement(AppState.currentProjectId);
-    showScreen('screen-settlement');
-  });
-  document.getElementById('btn-new-expense').addEventListener('click', () =>
-    navigateToExpenseForm(AppState.currentProjectId, null));
-  document.getElementById('btn-go-settlement').addEventListener('click', () => {
-    renderSettlement(AppState.currentProjectId);
-    showScreen('screen-settlement');
-  });
-
-  // ── Expense Form ──
-  document.getElementById('btn-expense-form-back').addEventListener('click', () =>
-    showScreen('screen-project-detail'));
-
-  document.getElementById('btn-expense-form-submit').addEventListener('click', () => {
-    const name   = document.getElementById('input-expense-name').value.trim();
-    const date   = document.getElementById('input-expense-date').value;
-    const amount = parseFloat(document.getElementById('input-expense-amount').value);
-    if (!name)              { alert('請輸入項目名稱'); return; }
-    if (!date)              { alert('請選擇日期'); return; }
-    if (!amount || amount <= 0) { alert('請輸入有效金額'); return; }
-
-    const payerChip = document.querySelector('.payer-chip.payer-selected');
-    if (!payerChip) { alert('請選擇代墊人'); return; }
-
-    const splitType = AppState.currentSplitType;
-    const splitMembers = splitType !== 'all'
-      ? Array.from(document.querySelectorAll('.split-member-chip.payer-selected')).map(c => c.dataset.mid)
-      : [];
-
-    if (splitType === 'include' && splitMembers.length === 0) { alert('請選擇分攤成員'); return; }
-
-    const expense = {
-      id: AppState.currentExpenseId || generateId(),
-      projectId: AppState.currentProjectId,
-      name, date, amount,
-      payerId: payerChip.dataset.mid,
-      splitType, splitMembers
-    };
-    saveExpense(expense);
-    renderProjectDetail(AppState.currentProjectId);
-    showScreen('screen-project-detail');
-  });
-
-  // ── Settlement ──
-  document.getElementById('btn-settlement-back').addEventListener('click', () =>
-    showScreen('screen-project-detail'));
-
-  document.getElementById('btn-toggle-algo').addEventListener('click', () => {
-    const projects = getAllProjects();
-    const project = projects.find(p => p.id === AppState.currentProjectId);
-    if (!project) return;
-    project.algorithm = project.algorithm === 'itemized' ? 'roundtable' : 'itemized';
-    saveProject(project);
-    renderSettlement(AppState.currentProjectId);
-  });
-
-  // ── Focus scroll fix for mobile keyboard ──
-  document.querySelectorAll('input').forEach(el => {
-    el.addEventListener('focus', () => {
-      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
-    });
-  });
-}
-
-// ============================================================
-// BLOCK 10: LIFF + Init
-// ============================================================
-async function initializeLiff() {
-  try {
-    await liff.init({ liffId: '2009708366-ZRcDL4VT' });
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
-    }
-    const profile = await liff.getProfile();
-    AppState.liffProfile = profile;
-    const avatarEl = document.getElementById('liff-user-avatar');
-    if (avatarEl && profile.pictureUrl) avatarEl.src = profile.pictureUrl;
-  } catch (err) {
-    console.warn('LIFF not available, running in browser mode:', err.message);
-  }
-  initApp();
-}
-
-function initApp() {
-  bindAllEvents();
-  renderHomeScreen();
-  showScreen('screen-home');
-}
-
-// window.onload = initializeLiff; // LIFF 暫時停用
-window.onload = initApp;
-</script>
 </body>
 </html>
