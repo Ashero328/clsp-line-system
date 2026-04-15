@@ -404,14 +404,37 @@ function exportExpensesCSV(pid) {
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
   });
 
-  const csv  = '\uFEFF' + [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `${project.name || 'ClearSplit'}_帳目.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const csv      = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+  const filename = `${project.name || 'ClearSplit'}_帳目.csv`;
+  const isLine   = /Line\//i.test(navigator.userAgent);
+
+  if (isLine) {
+    // LINE 內建瀏覽器不支援 Blob 下載，改用 data: URI
+    const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    const a = document.createElement('a');
+    a.href = dataUri;
+    a.download = filename;
+    a.click();
+    // 若 data: URI 仍被擋，fallback：開新視窗讓使用者長按儲存
+    setTimeout(() => {
+      try {
+        const w = window.open(dataUri, '_blank');
+        if (!w) {
+          alert('請點擊右上角選單 → 「以瀏覽器開啟」後再試一次匯出。');
+        }
+      } catch (_) {
+        alert('請點擊右上角選單 → 「以瀏覽器開啟」後再試一次匯出。');
+      }
+    }, 800);
+  } else {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 function renderSettlement(pid) {
