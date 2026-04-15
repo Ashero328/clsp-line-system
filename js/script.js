@@ -93,7 +93,7 @@ function iconColorClass(icon) {
 
 // ── Block 6: Renderers ──────────────────────────────────────
 function renderHomeScreen() {
-  const projects = getAllProjects();
+  const projects = getAllProjects().sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
   const list     = document.getElementById('home-project-list');
   const empty    = document.getElementById('home-empty-state');
   const count    = document.getElementById('home-project-count');

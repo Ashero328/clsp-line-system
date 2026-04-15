@@ -513,6 +513,8 @@ body {
 
 /* ── Algo Card Selection ─────────────────────────────────── */
 .algo-selected { border-color: var(--clr-primary) !important; }
+.algo-icon { color: var(--clr-on-surface-var); transition: color var(--tr-fast); }
+.algo-selected .algo-icon { color: var(--clr-primary); }
 
 /* ── Cover Zone ──────────────────────────────────────────── */
 .cover-zone { height: 160px; }
