@@ -406,23 +406,13 @@ function exportExpensesCSV(pid) {
 
   const csv      = '\uFEFF' + [headers.join(','), ...rows].join('\n');
   const filename = `${project.name || 'ClearSplit'}_帳目.csv`;
-  const isLine   = /Line\//i.test(navigator.userAgent);
-
-  if (isLine) {
-    // LINE 內建瀏覽器封鎖所有下載 → 開提示 modal
-    const modal = document.getElementById('modal-line-export');
-    document.getElementById('line-export-csv-text').value =
-      [headers.join(','), ...rows.map(r => r.replace(/^"|"$/gm, '').replaceAll('","', '\t'))].join('\n');
-    modal.classList.remove('hidden');
-  } else {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderSettlement(pid) {
@@ -968,24 +958,6 @@ function bindAllEvents() {
     exportExpensesCSV(AppState.currentProjectId);
   });
 
-  // LINE 匯出提示 modal
-  document.getElementById('btn-line-export-close').addEventListener('click', () => {
-    document.getElementById('modal-line-export').classList.add('hidden');
-  });
-  document.getElementById('modal-line-export').addEventListener('click', e => {
-    if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
-  });
-  document.getElementById('btn-line-export-copy').addEventListener('click', () => {
-    const ta = document.getElementById('line-export-csv-text');
-    ta.select();
-    navigator.clipboard.writeText(ta.value).then(() => {
-      const btn = document.getElementById('btn-line-export-copy');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '<span class="material-symbols-outlined txt-xl clr-primary" style="font-variation-settings:\'FILL\' 1;">check_circle</span><span class="clr-primary">已複製！</span>';
-      setTimeout(() => { btn.innerHTML = orig; }, 2000);
-    }).catch(() => { ta.select(); document.execCommand('copy'); });
-  });
-
   // Project detail — settings nav
   document.getElementById('detail-nav-settings').addEventListener('click', () => navigateToSettings(AppState.currentProjectId));
 
@@ -1058,6 +1030,10 @@ function initApp() {
   bindAllEvents();
   renderHomeScreen();
   showScreen('screen-home');
+  if (/Line\//i.test(navigator.userAgent)) {
+    const btn = document.getElementById('btn-export-excel');
+    if (btn) btn.style.display = 'none';
+  }
 }
 
 // window.onload = initializeLiff; // LIFF 暫時停用

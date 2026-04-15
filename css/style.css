@@ -7,7 +7,7 @@
 /* ── :root — Design Tokens ───────────────────────────────── */
 :root {
   /* Font Scale */
-  --base-font-size: 10px;
+  --base-font-size: 9px;
   --fs-2xs:  calc(var(--base-font-size) * 1.0);   /* 10px — nav labels, nano */
   --fs-xs:   calc(var(--base-font-size) * 1.1);   /* 11px — stat labels     */
   --fs-sm:   calc(var(--base-font-size) * 1.2);   /* 12px — section/form labels */
