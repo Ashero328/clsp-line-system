@@ -35,6 +35,7 @@ const AppState = {
   editingProjectId:       null,
   projectCurrencySymbol:  'NT$',
   projectBaseCurrency:    'TWD',
+  memberDetailMemberId:   null,
 };
 
 // ── Block 4: Navigation ─────────────────────────────────────
@@ -66,6 +67,27 @@ function splitDesc(e, members) {
   }
   const incl = e.splitMembers.map(id => (members.find(m=>m.id===id)||{name:'?'}).name).join('、');
   return `指定 ${incl} 均分`;
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    Object.assign(toast.style, {
+      position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)',
+      zIndex: '200', transition: 'opacity 0.3s', pointerEvents: 'none',
+      background: 'var(--clr-on-surface)', color: 'var(--clr-surface)',
+      borderRadius: '16px', padding: '10px 20px',
+      fontFamily: 'Manrope, sans-serif', fontWeight: '600', fontSize: '14px',
+      whiteSpace: 'nowrap',
+    });
+    document.getElementById('app').appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
 }
 
 function iconColorClass(icon) {
@@ -432,6 +454,13 @@ function renderSettlement(pid) {
   document.getElementById('algo-desc-display').textContent = isRound ? '計算最終淨額，以最少筆數轉帳結清' : '保留每筆支出的債務來源細節';
   document.getElementById('btn-toggle-algo-label').textContent = isRound ? '切換逐筆' : '切換圓桌';
 
+  const memberChips = document.getElementById('settlement-member-chips');
+  if (memberChips) {
+    memberChips.innerHTML = project.members.map(m =>
+      `<button class="member-detail-chip rounded-full px-3 py-1.5 font-label font-bold txt-md nm-btn-primary" data-member-id="${esc(m.id)}">${esc(m.name)}</button>`
+    ).join('');
+  }
+
   const list       = document.getElementById('settlement-balance-list');
   const allSettled = document.getElementById('settlement-all-settled');
 
@@ -507,6 +536,166 @@ function renderSettlement(pid) {
         </div>`;
     }).join('');
   }
+}
+
+// ── Member Detail Modal ──────────────────────────────────────
+function openMemberDetailModal(memberId, pid) {
+  const project  = getAllProjects().find(p => p.id === pid);
+  if (!project) return;
+  const expenses = getExpenses(pid);
+  const member   = project.members.find(m => m.id === memberId);
+  if (!member) return;
+  AppState.memberDetailMemberId = memberId;
+
+  const sym = AppState.projectCurrencySymbol;
+  const items = [];
+  let totalPaid = 0, totalOwed = 0;
+
+  for (const e of expenses) {
+    const participants = getParticipants(e, project.members);
+    if (!participants.includes(memberId)) continue;
+    const share    = e.amount / participants.length;
+    const isPayer  = e.payerId === memberId;
+    const payer    = project.members.find(m => m.id === e.payerId);
+    if (isPayer) totalPaid += e.amount;
+    else         totalOwed += share;
+    items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
+  }
+
+  const net = totalPaid - totalOwed;
+
+  const { transactions } = calculateRoundtable(project.members, expenses);
+  const settlements = transactions.filter(t => t.debtorName === member.name || t.creditorName === member.name);
+
+  document.getElementById('member-detail-title').textContent = member.name + ' 的帳目明細';
+
+  const list = document.getElementById('member-detail-list');
+  if (items.length === 0) {
+    list.innerHTML = `<p class="font-label txt-md clr-muted text-center py-8">沒有參與任何帳目</p>`;
+  } else {
+    list.innerHTML = items.map(item => `
+      <div class="nm-card rounded-2xl p-4">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <p class="font-headline font-semibold txt-body clr-surface truncate">${esc(item.name)}</p>
+            <p class="font-label txt-sm clr-muted mt-0.5">${fmtDate(item.date)}</p>
+            <p class="font-label txt-sm clr-muted">${item.isPayer ? '你付的' : ('付款人：' + esc(item.payerName))}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">
+              ${item.isPayer ? '+' : ''}${sym}${fmtAmt(item.share)}
+            </p>
+            <p class="font-label txt-xs clr-muted">共 ${sym}${fmtAmt(item.total)}</p>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  const summaryEl = document.getElementById('member-detail-summary');
+  const netSpan = net > 0.01
+    ? `<span class="clr-primary font-bold">+${sym}${fmtAmt(net)} 應收回</span>`
+    : net < -0.01
+    ? `<span style="color:var(--clr-error)" class="font-bold">-${sym}${fmtAmt(Math.abs(net))} 需轉帳</span>`
+    : `<span class="clr-muted">已平衡</span>`;
+
+  const settlementLines = settlements.map(t =>
+    t.debtorName === member.name
+      ? `<span class="font-label txt-sm clr-surface">轉帳給 <b>${esc(t.creditorName)}</b> ${sym}${fmtAmt(t.amount)}</span>`
+      : `<span class="font-label txt-sm clr-surface">向 <b>${esc(t.debtorName)}</b> 收 ${sym}${fmtAmt(t.amount)}</span>`
+  ).join('');
+
+  summaryEl.innerHTML = `
+    <div class="flex justify-between font-label txt-sm">
+      <span class="clr-muted">付出</span>
+      <span class="clr-surface font-semibold">${sym}${fmtAmt(totalPaid)}</span>
+    </div>
+    <div class="flex justify-between font-label txt-sm">
+      <span class="clr-muted">應付給他人</span>
+      <span class="clr-surface font-semibold">${sym}${fmtAmt(totalOwed)}</span>
+    </div>
+    <div class="flex justify-between font-label txt-md mt-1 pt-2" style="border-top:1px solid var(--clr-outline)">
+      <span class="clr-muted font-semibold">淨額</span>
+      ${netSpan}
+    </div>
+    ${settlements.length > 0 ? `
+    <div class="mt-2 pt-2 flex flex-col gap-1" style="border-top:1px solid var(--clr-outline)">
+      <span class="font-label txt-xs clr-muted">結算建議</span>
+      ${settlementLines}
+    </div>` : ''}`;
+
+  const modal = document.getElementById('modal-member-detail');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeMemberDetailModal() {
+  const modal = document.getElementById('modal-member-detail');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function copyMemberDetailText(memberId, pid) {
+  const project  = getAllProjects().find(p => p.id === pid);
+  if (!project) return;
+  const expenses = getExpenses(pid);
+  const member   = project.members.find(m => m.id === memberId);
+  if (!member) return;
+
+  const sym = AppState.projectCurrencySymbol;
+  const items = [];
+  let totalPaid = 0, totalOwed = 0;
+
+  for (const e of expenses) {
+    const participants = getParticipants(e, project.members);
+    if (!participants.includes(memberId)) continue;
+    const share   = e.amount / participants.length;
+    const isPayer = e.payerId === memberId;
+    const payer   = project.members.find(m => m.id === e.payerId);
+    if (isPayer) totalPaid += e.amount;
+    else         totalOwed += share;
+    items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
+  }
+
+  const net = totalPaid - totalOwed;
+  const { transactions } = calculateRoundtable(project.members, expenses);
+  const settlements = transactions.filter(t => t.debtorName === member.name || t.creditorName === member.name);
+
+  let text = `【ClearSplit 帳目明細】\n`;
+  text += `專案：${project.name}\n`;
+  text += `查詢對象：${member.name}\n\n`;
+
+  if (items.length === 0) {
+    text += `（沒有參與任何帳目）\n`;
+  } else {
+    text += `📋 參與帳目：\n`;
+    items.forEach(item => {
+      const payerStr = item.isPayer ? `${member.name}（你付的）` : item.payerName;
+      text += `・${item.name}（${item.date}）\n`;
+      text += `  總額 ${sym}${fmtAmt(item.total)} ／ 份額 ${sym}${fmtAmt(item.share)}  付款人：${payerStr}\n`;
+    });
+    text += `\n`;
+  }
+
+  text += `💰 你付了：${sym}${fmtAmt(totalPaid)}\n`;
+  text += `💸 你應付（給他人）：${sym}${fmtAmt(totalOwed)}\n`;
+
+  if (net > 0.01)       text += `📊 淨額：+${sym}${fmtAmt(net)}（應收回）\n`;
+  else if (net < -0.01) text += `📊 淨額：-${sym}${fmtAmt(Math.abs(net))}（需轉帳）\n`;
+  else                  text += `📊 淨額：已平衡\n`;
+
+  if (settlements.length > 0) {
+    text += `\n💳 結算建議：\n`;
+    settlements.forEach(t => {
+      if (t.debtorName === member.name)
+        text += `  轉帳給 ${t.creditorName} ${sym}${fmtAmt(t.amount)}\n`;
+      else
+        text += `  向 ${t.debtorName} 收 ${sym}${fmtAmt(t.amount)}\n`;
+    });
+  }
+
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('已複製！'))
+    .catch(() => showToast('複製失敗，請手動選取'));
 }
 
 // ── Block 7: Navigation Helpers ─────────────────────────────
@@ -952,6 +1141,19 @@ function bindAllEvents() {
     if (!btn) return;
     toggleSettledTx(AppState.currentProjectId, btn.dataset.txKey);
     renderSettlement(AppState.currentProjectId);
+  });
+
+  // Member detail chips
+  document.getElementById('screen-settlement').addEventListener('click', e => {
+    const chip = e.target.closest('.member-detail-chip');
+    if (chip) openMemberDetailModal(chip.dataset.memberId, AppState.currentProjectId);
+  });
+  document.getElementById('btn-member-detail-close').addEventListener('click', closeMemberDetailModal);
+  document.getElementById('modal-member-detail').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeMemberDetailModal();
+  });
+  document.getElementById('btn-member-detail-copy').addEventListener('click', () => {
+    copyMemberDetailText(AppState.memberDetailMemberId, AppState.currentProjectId);
   });
 
   document.getElementById('btn-export-excel').addEventListener('click', () => {

@@ -253,9 +253,9 @@
       </button>
       <span id="detail-project-name" class="app-header-page-title font-headline flex-1 truncate"></span>
       <button id="btn-go-settlement"
-        class="nm-btn-secondary rounded-2xl px-4 py-2 flex items-center gap-1.5 flex-shrink-0">
-        <span class="material-symbols-outlined txt-xl clr-primary">calculate</span>
-        <span class="font-label font-semibold txt-md clr-primary">結算</span>
+        class="nm-btn-primary rounded-2xl px-4 py-2 flex items-center gap-1.5 flex-shrink-0">
+        <span class="material-symbols-outlined txt-xl">calculate</span>
+        <span class="font-label font-semibold txt-md">結算</span>
       </button>
     </header>
 
@@ -425,9 +425,9 @@
       </button>
       <h2 class="app-header-page-title font-headline flex-1">結算明細</h2>
       <button id="btn-toggle-algo"
-        class="nm-btn-secondary rounded-2xl px-3 py-2 flex items-center gap-1.5 flex-shrink-0">
-        <span class="material-symbols-outlined txt-xl clr-primary">swap_horiz</span>
-        <span id="btn-toggle-algo-label" class="font-label font-semibold txt-md clr-primary">切換</span>
+        class="nm-btn-primary rounded-2xl px-3 py-2 flex items-center gap-1.5 flex-shrink-0">
+        <span class="material-symbols-outlined txt-xl">swap_horiz</span>
+        <span id="btn-toggle-algo-label" class="font-label font-semibold txt-md">切換逐筆</span>
       </button>
     </header>
 
@@ -461,13 +461,19 @@
         </div>
       </div>
 
+      <!-- Member Detail Chips -->
+      <div class="px-6 mt-5">
+        <p class="section-label font-label mb-3">成員明細</p>
+        <div id="settlement-member-chips" class="flex flex-wrap gap-2"></div>
+      </div>
+
       <!-- Balance List Header -->
       <div class="px-6 mt-8 flex items-center justify-between mb-4">
         <p class="section-label font-label">結算清單</p>
         <button id="btn-export-excel"
-          class="nm-btn-secondary rounded-xl px-3 py-2 flex items-center gap-1.5">
-          <span class="material-symbols-outlined txt-xl clr-primary">download</span>
-          <span class="font-label font-semibold txt-sm clr-primary">匯出 Excel</span>
+          class="nm-btn-primary rounded-xl px-3 py-2 flex items-center gap-1.5">
+          <span class="material-symbols-outlined txt-xl">download</span>
+          <span class="font-label font-semibold txt-sm">匯出 Excel</span>
         </button>
       </div>
 
@@ -595,6 +601,27 @@
           儲存
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: 個人帳目明細 ── -->
+  <div id="modal-member-detail" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-10 modal-sheet flex flex-col" style="max-height:85vh;">
+      <div class="modal-handle mb-4"></div>
+      <div class="flex items-center justify-between mb-3 flex-shrink-0">
+        <h3 id="member-detail-title" class="font-headline font-bold txt-xl clr-surface"></h3>
+        <button id="btn-member-detail-close"
+          class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+      <div id="member-detail-list" class="flex-1 overflow-y-auto flex flex-col gap-3 min-h-0 pr-1"></div>
+      <div id="member-detail-summary" class="nm-card rounded-2xl p-4 flex flex-col gap-1 flex-shrink-0 mt-3"></div>
+      <button id="btn-member-detail-copy"
+        class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex-shrink-0 mt-3 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined txt-xl">content_copy</span>
+        複製文字
+      </button>
     </div>
   </div>
 
