@@ -1148,13 +1148,12 @@ function bindAllEvents() {
     const chip = e.target.closest('.member-detail-chip');
     if (chip) openMemberDetailModal(chip.dataset.memberId, AppState.currentProjectId);
   });
-  document.getElementById('btn-member-detail-close').addEventListener('click', closeMemberDetailModal);
-  document.getElementById('modal-member-detail').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeMemberDetailModal();
-  });
-  document.getElementById('btn-member-detail-copy').addEventListener('click', () => {
-    copyMemberDetailText(AppState.memberDetailMemberId, AppState.currentProjectId);
-  });
+  const _mdClose = document.getElementById('btn-member-detail-close');
+  const _mdModal = document.getElementById('modal-member-detail');
+  const _mdCopy  = document.getElementById('btn-member-detail-copy');
+  if (_mdClose) _mdClose.addEventListener('click', closeMemberDetailModal);
+  if (_mdModal) _mdModal.addEventListener('click', e => { if (e.target === e.currentTarget) closeMemberDetailModal(); });
+  if (_mdCopy)  _mdCopy.addEventListener('click', () => copyMemberDetailText(AppState.memberDetailMemberId, AppState.currentProjectId));
 
   document.getElementById('btn-export-excel').addEventListener('click', () => {
     exportExpensesCSV(AppState.currentProjectId);
@@ -1229,7 +1228,8 @@ async function initializeLiff() {
 }
 
 function setAppHeight() {
-  document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+  const app = document.getElementById('app');
+  if (app) app.style.height = window.innerHeight + 'px';
 }
 
 function initApp() {

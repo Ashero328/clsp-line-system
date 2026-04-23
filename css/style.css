@@ -74,9 +74,8 @@
 html, body { height: 100%; }
 
 #app {
-  height: 100vh;
-  height: 100dvh;
-  height: var(--app-height, 100dvh);
+  height: 100vh;   /* fallback — always valid */
+  height: 100dvh;  /* modern browsers override */
 }
 
 body {
