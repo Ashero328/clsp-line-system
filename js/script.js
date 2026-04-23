@@ -1228,7 +1228,13 @@ async function initializeLiff() {
   initApp();
 }
 
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+}
+
 function initApp() {
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
   bindAllEvents();
   renderHomeScreen();
   showScreen('screen-home');

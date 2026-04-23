@@ -71,6 +71,14 @@
 /* ── Base ────────────────────────────────────────────────── */
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
+html, body { height: 100%; }
+
+#app {
+  height: 100vh;
+  height: 100dvh;
+  height: var(--app-height, 100dvh);
+}
+
 body {
   background: var(--clr-bg);
   font-family: 'Manrope', sans-serif;
