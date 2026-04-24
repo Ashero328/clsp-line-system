@@ -1318,9 +1318,7 @@ async function initializeLiff() {
         const profile = await liff.getProfile();
         _applyLiffProfile(profile);
       } catch (e) {
-        // Authorization revoked — re-trigger login inside LINE WebView
-        liff.login();
-        return;
+        // getProfile unavailable (e.g. auth revoked) — app continues without avatar
       }
     } else {
       // External browser — require login unless arriving via share link
