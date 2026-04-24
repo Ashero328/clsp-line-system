@@ -1299,11 +1299,20 @@ function bindAllEvents() {
 async function initializeLiff() {
   try {
     await liff.init({ liffId: '2009708366-ZRcDL4VT' });
-    if (!liff.isLoggedIn()) { liff.login(); return; }
-    const profile = await liff.getProfile();
-    AppState.liffProfile = profile;
-    const avatarEl = document.getElementById('liff-user-avatar');
-    if (avatarEl && profile.pictureUrl) avatarEl.src = profile.pictureUrl;
+    // Joiners arriving via share link don't need to login
+    const isJoining = !!new URLSearchParams(location.search).get('join');
+    if (!isJoining && !liff.isLoggedIn()) { liff.login(); return; }
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      AppState.liffProfile = profile;
+      const avatarEl   = document.getElementById('liff-user-avatar');
+      const fallbackEl = document.getElementById('liff-avatar-fallback');
+      if (avatarEl && profile.pictureUrl) {
+        avatarEl.src = profile.pictureUrl;
+        avatarEl.classList.remove('hidden');
+        if (fallbackEl) fallbackEl.classList.add('hidden');
+      }
+    }
   } catch (err) {
     console.warn('LIFF not available, running in browser mode:', err.message);
   }
