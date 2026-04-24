@@ -1296,21 +1296,33 @@ function bindAllEvents() {
 }
 
 // ── Block 10: LIFF + Init ────────────────────────────────────
+function _applyLiffProfile(profile) {
+  if (!profile) return;
+  AppState.liffProfile = profile;
+  const avatarEl   = document.getElementById('liff-user-avatar');
+  const fallbackEl = document.getElementById('liff-avatar-fallback');
+  if (avatarEl && profile.pictureUrl) {
+    avatarEl.src = profile.pictureUrl;
+    avatarEl.classList.remove('hidden');
+    if (fallbackEl) fallbackEl.classList.add('hidden');
+  }
+}
+
 async function initializeLiff() {
   try {
     await liff.init({ liffId: '2009708366-ZRcDL4VT' });
-    // Joiners arriving via share link don't need to login
     const isJoining = !!new URLSearchParams(location.search).get('join');
-    if (!isJoining && !liff.isLoggedIn()) { liff.login(); return; }
-    if (liff.isLoggedIn()) {
+
+    if (liff.isInClient()) {
+      // Inside LINE WebView — user is always authenticated, getProfile directly
       const profile = await liff.getProfile();
-      AppState.liffProfile = profile;
-      const avatarEl   = document.getElementById('liff-user-avatar');
-      const fallbackEl = document.getElementById('liff-avatar-fallback');
-      if (avatarEl && profile.pictureUrl) {
-        avatarEl.src = profile.pictureUrl;
-        avatarEl.classList.remove('hidden');
-        if (fallbackEl) fallbackEl.classList.add('hidden');
+      _applyLiffProfile(profile);
+    } else {
+      // External browser — require login unless arriving via share link
+      if (!isJoining && !liff.isLoggedIn()) { liff.login(); return; }
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        _applyLiffProfile(profile);
       }
     }
   } catch (err) {
