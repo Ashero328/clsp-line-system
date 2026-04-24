@@ -1489,5 +1489,4 @@ function initApp() {
   if (joinCode) openJoinModal(joinCode);
 }
 
-// window.onload = initializeLiff; // LIFF 暫時停用
-window.onload = initApp;
+window.onload = initializeLiff;
