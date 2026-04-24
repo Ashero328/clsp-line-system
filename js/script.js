@@ -1314,9 +1314,14 @@ async function initializeLiff() {
     const isJoining = !!new URLSearchParams(location.search).get('join');
 
     if (liff.isInClient()) {
-      // Inside LINE WebView — user is always authenticated, getProfile directly
-      const profile = await liff.getProfile();
-      _applyLiffProfile(profile);
+      try {
+        const profile = await liff.getProfile();
+        _applyLiffProfile(profile);
+      } catch (e) {
+        // Authorization revoked — re-trigger login inside LINE WebView
+        liff.login();
+        return;
+      }
     } else {
       // External browser — require login unless arriving via share link
       if (!isJoining && !liff.isLoggedIn()) { liff.login(); return; }
