@@ -85,13 +85,18 @@
     <main class="flex-1 overflow-y-auto no-scrollbar px-6 pb-8">
 
       <!-- Hero CTA -->
-      <section class="pt-6 pb-5">
+      <section class="pt-6 pb-5 flex flex-col gap-3">
         <button id="btn-new-project"
           class="nm-cta-hero w-full py-5 px-6 rounded-4xl flex items-center justify-between group">
           <span class="cta-label font-headline">建立新專案</span>
           <div class="cta-icon-circle w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0">
             <span class="material-symbols-outlined txt-2xl clr-white" style="font-variation-settings:'FILL' 1;">add</span>
           </div>
+        </button>
+        <button id="btn-join-by-code"
+          class="nm-btn-secondary w-full py-4 px-6 rounded-4xl flex items-center justify-between">
+          <span class="font-headline font-semibold txt-lg clr-primary">用分享碼加入專案</span>
+          <span class="material-symbols-outlined txt-2xl clr-primary" style="font-variation-settings:'FILL' 1;">group_add</span>
         </button>
       </section>
 
@@ -252,6 +257,10 @@
         <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
       </button>
       <span id="detail-project-name" class="app-header-page-title font-headline flex-1 truncate"></span>
+      <button id="btn-share-project"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span id="share-btn-icon" class="material-symbols-outlined txt-xl clr-primary" style="font-variation-settings:'FILL' 1;">cloud_upload</span>
+      </button>
       <button id="btn-go-settlement"
         class="nm-btn-primary rounded-2xl px-4 py-2 flex items-center gap-1.5 flex-shrink-0">
         <span class="material-symbols-outlined txt-xl">calculate</span>
@@ -625,7 +634,104 @@
     </div>
   </div>
 
+  <!-- ── Share Project Modal ── -->
+  <div id="modal-share-project" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-8 modal-sheet flex flex-col" style="max-height:80vh;">
+      <div class="modal-handle mb-4"></div>
+      <div class="flex items-center justify-between mb-5 flex-shrink-0">
+        <h3 class="font-headline font-bold txt-xl clr-surface">分享此專案</h3>
+        <button id="btn-share-modal-close" class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+
+      <!-- uploading state -->
+      <div id="share-state-uploading" class="hidden flex-col items-center gap-3 py-8">
+        <span class="material-symbols-outlined txt-4xl clr-primary spin-icon">progress_activity</span>
+        <p class="font-label clr-muted">上傳中，請稍候...</p>
+      </div>
+
+      <!-- ready state -->
+      <div id="share-state-ready" class="hidden flex-col gap-4">
+        <p class="font-label clr-muted txt-md">將連結傳給朋友，他們點選後即可加入此帳目</p>
+        <div class="nm-card rounded-2xl p-4 flex flex-col items-center gap-1">
+          <p class="font-label txt-sm clr-muted">分享碼</p>
+          <p id="share-code-display" class="font-headline font-bold clr-primary share-code-big"></p>
+        </div>
+        <div class="nm-card rounded-2xl px-4 py-3">
+          <p id="share-url-display" class="font-label txt-sm clr-muted break-all leading-relaxed"></p>
+        </div>
+        <button id="btn-copy-share-link" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl">content_copy</span>複製連結
+        </button>
+        <button id="btn-send-to-line" class="nm-btn-secondary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' 1;">send</span>傳送到 LINE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Join Project Modal ── -->
+  <div id="modal-join-project" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-8 modal-sheet flex flex-col" style="max-height:80vh;">
+      <div class="modal-handle mb-4"></div>
+      <div class="flex items-center justify-between mb-5 flex-shrink-0">
+        <h3 class="font-headline font-bold txt-xl clr-surface">加入專案</h3>
+        <button id="btn-join-modal-close" class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+
+      <!-- enter code state -->
+      <div id="join-state-enter" class="flex flex-col gap-4">
+        <p class="font-label clr-muted txt-md">輸入朋友給你的 6 位分享碼</p>
+        <input id="input-join-code" type="text" maxlength="6"
+          placeholder="例如：ABC123"
+          class="nm-input w-full rounded-2xl px-5 py-4 text-center font-headline font-bold join-code-input"
+          autocomplete="off" autocapitalize="characters" />
+        <button id="btn-join-lookup" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl">search</span>查詢
+        </button>
+      </div>
+
+      <!-- loading state -->
+      <div id="join-state-loading" class="hidden flex-col items-center gap-3 py-8">
+        <span class="material-symbols-outlined txt-4xl clr-primary spin-icon">progress_activity</span>
+        <p class="font-label clr-muted">載入中...</p>
+      </div>
+
+      <!-- confirm state -->
+      <div id="join-state-confirm" class="hidden flex-col gap-4">
+        <div class="nm-card rounded-2xl p-5 flex items-center gap-4">
+          <span class="material-symbols-outlined txt-3xl clr-primary" style="font-variation-settings:'FILL' 1;">folder_shared</span>
+          <div>
+            <p id="join-confirm-name" class="font-headline font-bold txt-lg clr-surface"></p>
+            <p id="join-confirm-meta" class="font-label txt-sm clr-muted mt-0.5"></p>
+          </div>
+        </div>
+        <p class="font-label clr-muted txt-md">確定加入此專案？加入後可與對方即時同步帳目。</p>
+        <button id="btn-join-confirm" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' 1;">group_add</span>加入
+        </button>
+        <button id="btn-join-back" class="nm-btn-secondary w-full py-3 rounded-2xl font-headline flex items-center justify-center">
+          返回
+        </button>
+      </div>
+
+      <!-- already joined state -->
+      <div id="join-state-already" class="hidden flex-col items-center gap-4 py-4">
+        <span class="material-symbols-outlined txt-4xl clr-primary" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        <p class="font-headline font-bold txt-lg clr-surface">你已加入此專案</p>
+        <p id="join-already-name" class="font-label clr-muted txt-md"></p>
+        <button id="btn-join-go-project" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl">arrow_forward</span>前往專案
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Icon Picker Popup ── -->
+   
   <div id="icon-picker-popup" class="hidden absolute z-50 rounded-3xl p-4 icon-picker-popup">
     <div class="grid grid-cols-5 gap-2">
       <!-- populated by JS -->
@@ -634,10 +740,15 @@
 
 </div><!-- #app -->
 
+<!-- Firebase Compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <!-- LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <!-- Logic Layer -->
 <script src="js/customer_script.js"></script>
+<!-- Firebase Service Layer -->
+<script src="js/firebase_service.js"></script>
 <!-- UI Layer -->
 <script src="js/script.js"></script>
 

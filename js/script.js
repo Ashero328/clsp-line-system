@@ -36,10 +36,15 @@ const AppState = {
   projectCurrencySymbol:  'NT$',
   projectBaseCurrency:    'TWD',
   memberDetailMemberId:   null,
+  pendingJoinData:        null,  // stores fetched project data before user confirms join
 };
 
 // ── Block 4: Navigation ─────────────────────────────────────
 function showScreen(id) {
+  // Unsubscribe Firestore listener when leaving project detail
+  if (id !== 'screen-project-detail' && id !== 'screen-settlement' && AppState.currentProjectId) {
+    if (typeof fsUnsubscribeProject === 'function') fsUnsubscribeProject(AppState.currentProjectId);
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const t = document.getElementById(id);
   if (t) t.classList.add('active');
@@ -180,6 +185,18 @@ function renderProjectDetail(pid) {
   const avg   = project.members.length ? Math.round(total / project.members.length) : 0;
   const sym   = AppState.projectCurrencySymbol;
 
+  // Update share button icon based on whether project is already shared
+  const shareIconEl = document.getElementById('share-btn-icon');
+  if (shareIconEl) shareIconEl.textContent = project.shareCode ? 'share' : 'cloud_upload';
+
+  // Subscribe to Firestore real-time updates if this is a shared project
+  if (project.shareCode && typeof fsSubscribeProject === 'function' && typeof db !== 'undefined' && db) {
+    fsSubscribeProject(pid,
+      () => renderProjectDetail(pid),
+      () => { /* settled changes trigger re-render from settlement screen if active */ }
+    );
+  }
+
   document.getElementById('detail-project-name').textContent  = project.name;
   document.getElementById('detail-total-amount').textContent  = fmtAmt(total);
   document.getElementById('detail-expense-count').textContent = expenses.length;
@@ -253,6 +270,8 @@ function renderProjectDetail(pid) {
     b.addEventListener('click', () => {
       if (confirm('確定要刪除這筆帳目？')) {
         deleteExpense(pid, b.dataset.eid);
+        if (fsIsSharedProject(pid) && typeof fsDeleteExpenseCloud === 'function')
+          fsDeleteExpenseCloud(pid, b.dataset.eid);
         renderProjectDetail(pid);
       }
     }));
@@ -1106,7 +1125,7 @@ function bindAllEvents() {
     const rate       = (currency !== base) ? (settings.rates?.[currency] || 1) : 1;
     const baseAmount = (currency !== base) ? Math.round(amount * rate) : amount;
 
-    saveExpense({
+    const expenseObj = {
       id:             AppState.currentExpenseId || generateId(),
       projectId:      pid,
       name, date,
@@ -1117,7 +1136,10 @@ function bindAllEvents() {
       icon:           AppState.currentExpenseIcon,
       payerId:        payerChip.dataset.mid,
       splitType, splitMembers
-    });
+    };
+    saveExpense(expenseObj);
+    if (fsIsSharedProject(pid) && typeof fsSyncExpense === 'function')
+      fsSyncExpense(expenseObj);
     renderProjectDetail(pid);
     showScreen('screen-project-detail');
   });
@@ -1139,8 +1161,11 @@ function bindAllEvents() {
   document.getElementById('settlement-balance-list').addEventListener('click', e => {
     const btn = e.target.closest('.settle-btn');
     if (!btn) return;
-    toggleSettledTx(AppState.currentProjectId, btn.dataset.txKey);
-    renderSettlement(AppState.currentProjectId);
+    const pid = AppState.currentProjectId;
+    toggleSettledTx(pid, btn.dataset.txKey);
+    if (fsIsSharedProject(pid) && typeof fsSyncSettled === 'function')
+      fsSyncSettled(pid, btn.dataset.txKey);
+    renderSettlement(pid);
   });
 
   // Member detail chips
@@ -1210,6 +1235,64 @@ function bindAllEvents() {
       setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     });
   });
+
+  // ── Share Project ──────────────────────────────────────────
+  const _shareBtn = document.getElementById('btn-share-project');
+  if (_shareBtn) _shareBtn.addEventListener('click', () => openShareModal(AppState.currentProjectId));
+
+  const _shareMClose = document.getElementById('btn-share-modal-close');
+  if (_shareMClose) _shareMClose.addEventListener('click', closeShareModal);
+
+  const _shareModal = document.getElementById('modal-share-project');
+  if (_shareModal) _shareModal.addEventListener('click', e => { if (e.target === e.currentTarget) closeShareModal(); });
+
+  const _copyLink = document.getElementById('btn-copy-share-link');
+  if (_copyLink) _copyLink.addEventListener('click', copyShareLink);
+
+  const _sendLine = document.getElementById('btn-send-to-line');
+  if (_sendLine) _sendLine.addEventListener('click', sendToLine);
+
+  // ── Join Project ───────────────────────────────────────────
+  const _joinBtn = document.getElementById('btn-join-by-code');
+  if (_joinBtn) _joinBtn.addEventListener('click', () => openJoinModal(null));
+
+  const _joinMClose = document.getElementById('btn-join-modal-close');
+  if (_joinMClose) _joinMClose.addEventListener('click', closeJoinModal);
+
+  const _joinModal = document.getElementById('modal-join-project');
+  if (_joinModal) _joinModal.addEventListener('click', e => { if (e.target === e.currentTarget) closeJoinModal(); });
+
+  const _joinLookup = document.getElementById('btn-join-lookup');
+  if (_joinLookup) _joinLookup.addEventListener('click', () => {
+    const code = (document.getElementById('input-join-code')?.value || '').trim().toUpperCase();
+    if (code.length < 6) { showToast('請輸入 6 位分享碼'); return; }
+    _setJoinState('loading');
+    _lookupJoinCode(code);
+  });
+
+  const _joinCode = document.getElementById('input-join-code');
+  if (_joinCode) _joinCode.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-join-lookup')?.click();
+  });
+
+  const _joinConfirm = document.getElementById('btn-join-confirm');
+  if (_joinConfirm) _joinConfirm.addEventListener('click', confirmJoinProject);
+
+  const _joinBack = document.getElementById('btn-join-back');
+  if (_joinBack) _joinBack.addEventListener('click', () => _setJoinState('enter'));
+
+  const _joinGoProject = document.getElementById('btn-join-go-project');
+  if (_joinGoProject) _joinGoProject.addEventListener('click', () => {
+    const data = AppState.pendingJoinData;
+    if (!data?.project) { closeJoinModal(); return; }
+    closeJoinModal();
+    AppState.currentProjectId = data.project.id;
+    const settings = getProjectSettings(data.project.id);
+    AppState.projectBaseCurrency   = settings.baseCurrency || 'TWD';
+    AppState.projectCurrencySymbol = currencySymbol(AppState.projectBaseCurrency);
+    renderProjectDetail(data.project.id);
+    showScreen('screen-project-detail');
+  });
 }
 
 // ── Block 10: LIFF + Init ────────────────────────────────────
@@ -1232,6 +1315,164 @@ function setAppHeight() {
   if (app) app.style.height = window.innerHeight + 'px';
 }
 
+// ── Share Modal ───────────────────────────────────────────────
+
+function openShareModal(pid) {
+  const modal = document.getElementById('modal-share-project');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const project = getAllProjects().find(p => p.id === pid);
+  if (!project) return;
+
+  if (project.shareCode) {
+    // Already shared — show code and link directly
+    _showShareReady(project.shareCode);
+    return;
+  }
+
+  // Upload to Firestore
+  document.getElementById('share-state-uploading').classList.remove('hidden');
+  document.getElementById('share-state-uploading').style.display = 'flex';
+  document.getElementById('share-state-ready').classList.add('hidden');
+
+  fsUploadProject(pid)
+    .then(shareCode => { _showShareReady(shareCode); })
+    .catch(err => {
+      closeShareModal();
+      showToast('上傳失敗：' + (err.message || err));
+    });
+}
+
+function _showShareReady(shareCode) {
+  document.getElementById('share-state-uploading').style.display = 'none';
+  document.getElementById('share-state-uploading').classList.add('hidden');
+  const ready = document.getElementById('share-state-ready');
+  ready.classList.remove('hidden');
+  ready.style.display = 'flex';
+
+  document.getElementById('share-code-display').textContent = shareCode;
+
+  const url = location.origin + location.pathname + '?join=' + shareCode;
+  document.getElementById('share-url-display').textContent = url;
+}
+
+function closeShareModal() {
+  const modal = document.getElementById('modal-share-project');
+  if (modal) modal.classList.add('hidden');
+}
+
+function copyShareLink() {
+  const url = document.getElementById('share-url-display')?.textContent;
+  if (!url) return;
+  navigator.clipboard.writeText(url)
+    .then(() => showToast('連結已複製！'))
+    .catch(() => {
+      // Fallback for LINE WebView
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('連結已複製！');
+    });
+}
+
+function sendToLine() {
+  const url = document.getElementById('share-url-display')?.textContent;
+  if (!url) return;
+  const lineUrl = 'https://line.me/R/msg/text/?' + encodeURIComponent(url);
+  window.open(lineUrl, '_blank');
+}
+
+// ── Join Modal ────────────────────────────────────────────────
+
+function openJoinModal(prefilledCode) {
+  const modal = document.getElementById('modal-join-project');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  _setJoinState('enter');
+  const inp = document.getElementById('input-join-code');
+  if (inp) {
+    inp.value = prefilledCode ? prefilledCode.toUpperCase() : '';
+    if (prefilledCode) {
+      // Auto-lookup if code came from URL
+      _setJoinState('loading');
+      _lookupJoinCode(prefilledCode);
+    }
+  }
+}
+
+function closeJoinModal() {
+  const modal = document.getElementById('modal-join-project');
+  if (modal) modal.classList.add('hidden');
+  AppState.pendingJoinData = null;
+}
+
+function _setJoinState(state) {
+  ['enter', 'loading', 'confirm', 'already'].forEach(s => {
+    const el = document.getElementById('join-state-' + s);
+    if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
+  });
+  const active = document.getElementById('join-state-' + state);
+  if (active) { active.classList.remove('hidden'); active.style.display = 'flex'; }
+}
+
+function _lookupJoinCode(code) {
+  fsJoinByCode(code)
+    .then(result => {
+      if (result.alreadyJoined) {
+        _setJoinState('already');
+        const nameEl = document.getElementById('join-already-name');
+        if (nameEl) nameEl.textContent = result.project.name;
+        AppState.pendingJoinData = result;
+      } else {
+        AppState.pendingJoinData = result;
+        _setJoinState('confirm');
+        const nameEl = document.getElementById('join-confirm-name');
+        const metaEl = document.getElementById('join-confirm-meta');
+        if (nameEl) nameEl.textContent = result.projectName || result.project.name;
+        if (metaEl) metaEl.textContent = (result.memberCount || (result.project.members || []).length) + ' 位成員';
+      }
+    })
+    .catch(err => {
+      _setJoinState('enter');
+      showToast(err.message || '查詢失敗');
+    });
+}
+
+function confirmJoinProject() {
+  const data = AppState.pendingJoinData;
+  if (!data || data.alreadyJoined) return;
+
+  const { project, expenses, settledKeys } = data;
+
+  // Save project to localStorage
+  saveProject(project);
+
+  // Save expenses
+  expenses.forEach(e => saveExpense(e));
+
+  // Save settled transactions
+  if (settledKeys && settledKeys.length) {
+    localStorage.setItem('clsp_settled_' + project.id, JSON.stringify(settledKeys));
+  }
+
+  closeJoinModal();
+  showToast('已加入「' + project.name + '」！');
+
+  // Navigate to the project
+  AppState.currentProjectId = project.id;
+  const settings = getProjectSettings(project.id);
+  AppState.projectBaseCurrency = settings.baseCurrency || 'TWD';
+  AppState.projectCurrencySymbol = currencySymbol(AppState.projectBaseCurrency);
+  renderProjectDetail(project.id);
+  showScreen('screen-project-detail');
+}
+
+// ── App Init ──────────────────────────────────────────────────
+
 function initApp() {
   setAppHeight();
   window.addEventListener('resize', setAppHeight);
@@ -1242,6 +1483,10 @@ function initApp() {
     const btn = document.getElementById('btn-export-excel');
     if (btn) btn.style.display = 'none';
   }
+
+  // Check URL for ?join=CODE (shared project invite link)
+  const joinCode = new URLSearchParams(location.search).get('join');
+  if (joinCode) openJoinModal(joinCode);
 }
 
 // window.onload = initializeLiff; // LIFF 暫時停用

@@ -615,3 +615,23 @@ body {
   padding: 6px 12px; border-radius: 0.75rem;
 }
 .settings-rate-refresh-btn:active { transform: scale(0.93); }
+
+/* ── Share & Join ─────────────────────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin-icon { animation: spin 1s linear infinite; display: block; }
+
+.share-code-big {
+  font-size: calc(var(--base-font-size) * 4.0);
+  letter-spacing: 0.25em;
+  color: var(--clr-primary);
+}
+
+.join-code-input {
+  font-size: calc(var(--base-font-size) * 2.4);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--clr-on-surface);
+}
