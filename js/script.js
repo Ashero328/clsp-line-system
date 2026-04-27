@@ -205,13 +205,22 @@ function renderProjectDetail(pid) {
     );
   }
 
+  const inputTotal = hasDual ? Math.round(total / inputRate) : total;
+  const inputAvg   = hasDual ? Math.round(avg   / inputRate) : avg;
+
   document.getElementById('detail-project-name').textContent  = project.name;
-  document.getElementById('detail-total-amount').textContent  = fmtAmt(total);
+  document.getElementById('detail-total-amount').textContent  = fmtAmt(inputTotal);
   document.getElementById('detail-expense-count').textContent = expenses.length;
-  document.getElementById('detail-avg-amount').textContent    = sym + fmtAmt(avg);
-  // Update currency unit in banner
+  document.getElementById('detail-avg-amount').textContent    = inputSym + fmtAmt(inputAvg);
+
   const unitEl = document.getElementById('detail-currency-unit');
-  if (unitEl) unitEl.textContent = sym;
+  if (unitEl) unitEl.textContent = inputSym;
+
+  const baseTotalEl = document.getElementById('detail-total-base');
+  if (baseTotalEl) {
+    baseTotalEl.textContent = hasDual ? `${sym}${fmtAmt(total)}` : '';
+    baseTotalEl.classList.toggle('hidden', !hasDual);
+  }
 
   const algoBadge = document.getElementById('detail-algo-badge');
   if (project.algorithm === 'itemized') {
