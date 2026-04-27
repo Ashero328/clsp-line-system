@@ -186,6 +186,13 @@ function renderProjectDetail(pid) {
   const avg   = project.members.length ? Math.round(total / project.members.length) : 0;
   const sym   = AppState.projectCurrencySymbol;
 
+  const settings  = getProjectSettings(pid);
+  const baseCurr  = settings.baseCurrency  || 'TWD';
+  const inputCurr = settings.defaultInputCurrency || baseCurr;
+  const hasDual   = inputCurr !== baseCurr;
+  const inputSym  = hasDual ? currencySymbol(inputCurr) : sym;
+  const inputRate = hasDual ? (settings.rates?.[inputCurr] || 1) : 1;
+
   // Update share button icon based on whether project is already shared
   const shareIconEl = document.getElementById('share-btn-icon');
   if (shareIconEl) shareIconEl.textContent = project.shareCode ? 'share' : 'cloud_upload';
@@ -228,13 +235,17 @@ function renderProjectDetail(pid) {
       const payer    = project.members.find(m => m.id === e.payerId);
       const iconKey  = e.icon || detectIcon(e.name);
       const iconCls  = iconColorClass(iconKey);
-      const hasForeign = e.currency && e.currency !== AppState.projectBaseCurrency && e.originalAmount != null;
-      const bigAmt   = hasForeign
-        ? `${currencySymbol(e.currency)}${fmtAmt(e.originalAmount)}`
-        : `${sym}${fmtAmt(e.amount)}`;
-      const smallAmt = hasForeign
-        ? `<p class="font-label txt-xs clr-muted mt-0.5">${sym}${fmtAmt(e.amount)}</p>`
-        : '';
+      let bigAmt, smallAmt;
+      if (hasDual) {
+        const inputAmt = (e.currency === inputCurr && e.originalAmount != null)
+          ? e.originalAmount
+          : Math.round(e.amount / inputRate);
+        bigAmt  = `${inputSym}${fmtAmt(inputAmt)}`;
+        smallAmt = `<p class="font-label txt-xs clr-muted mt-0.5">${sym}${fmtAmt(e.amount)}</p>`;
+      } else {
+        bigAmt  = `${sym}${fmtAmt(e.amount)}`;
+        smallAmt = '';
+      }
       return `
         <div class="expense-card">
           <div class="flex items-center gap-4">
