@@ -617,7 +617,13 @@ function openMemberDetailModal(memberId, pid) {
   if (!member) return;
   AppState.memberDetailMemberId = memberId;
 
-  const sym = AppState.projectCurrencySymbol;
+  const settings  = getProjectSettings(pid);
+  const baseCurr  = settings.baseCurrency || 'TWD';
+  const viewCurr  = AppState.settlementViewCurrency || settings.defaultInputCurrency || baseCurr;
+  const sym       = currencySymbol(viewCurr);
+  const cvtRate   = (viewCurr !== baseCurr) ? (settings.rates?.[viewCurr] || 1) : 1;
+  const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
+
   const items = [];
   let totalPaid = 0, totalOwed = 0;
 
@@ -653,9 +659,9 @@ function openMemberDetailModal(memberId, pid) {
           </div>
           <div class="text-right flex-shrink-0">
             <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">
-              ${item.isPayer ? '+' : ''}${sym}${fmtAmt(item.share)}
+              ${item.isPayer ? '+' : ''}${sym}${fmtAmt(cvt(item.share))}
             </p>
-            <p class="font-label txt-xs clr-muted">共 ${sym}${fmtAmt(item.total)}</p>
+            <p class="font-label txt-xs clr-muted">共 ${sym}${fmtAmt(cvt(item.total))}</p>
           </div>
         </div>
       </div>`).join('');
@@ -663,25 +669,25 @@ function openMemberDetailModal(memberId, pid) {
 
   const summaryEl = document.getElementById('member-detail-summary');
   const netSpan = net > 0.01
-    ? `<span class="clr-primary font-bold">+${sym}${fmtAmt(net)} 應收回</span>`
+    ? `<span class="clr-primary font-bold">+${sym}${fmtAmt(cvt(net))} 應收回</span>`
     : net < -0.01
-    ? `<span style="color:var(--clr-error)" class="font-bold">-${sym}${fmtAmt(Math.abs(net))} 需轉帳</span>`
+    ? `<span style="color:var(--clr-error)" class="font-bold">-${sym}${fmtAmt(cvt(Math.abs(net)))} 需轉帳</span>`
     : `<span class="clr-muted">已平衡</span>`;
 
   const settlementLines = settlements.map(t =>
     t.debtorName === member.name
-      ? `<span class="font-label txt-sm clr-surface">轉帳給 <b>${esc(t.creditorName)}</b> ${sym}${fmtAmt(t.amount)}</span>`
-      : `<span class="font-label txt-sm clr-surface">向 <b>${esc(t.debtorName)}</b> 收 ${sym}${fmtAmt(t.amount)}</span>`
+      ? `<span class="font-label txt-sm clr-surface">轉帳給 <b>${esc(t.creditorName)}</b> ${sym}${fmtAmt(cvt(t.amount))}</span>`
+      : `<span class="font-label txt-sm clr-surface">向 <b>${esc(t.debtorName)}</b> 收 ${sym}${fmtAmt(cvt(t.amount))}</span>`
   ).join('');
 
   summaryEl.innerHTML = `
     <div class="flex justify-between font-label txt-sm">
       <span class="clr-muted">付出</span>
-      <span class="clr-surface font-semibold">${sym}${fmtAmt(totalPaid)}</span>
+      <span class="clr-surface font-semibold">${sym}${fmtAmt(cvt(totalPaid))}</span>
     </div>
     <div class="flex justify-between font-label txt-sm">
       <span class="clr-muted">應付給他人</span>
-      <span class="clr-surface font-semibold">${sym}${fmtAmt(totalOwed)}</span>
+      <span class="clr-surface font-semibold">${sym}${fmtAmt(cvt(totalOwed))}</span>
     </div>
     <div class="flex justify-between font-label txt-md mt-1 pt-2" style="border-top:1px solid var(--clr-outline)">
       <span class="clr-muted font-semibold">淨額</span>
@@ -711,7 +717,13 @@ function copyMemberDetailText(memberId, pid) {
   const member   = project.members.find(m => m.id === memberId);
   if (!member) return;
 
-  const sym = AppState.projectCurrencySymbol;
+  const settings  = getProjectSettings(pid);
+  const baseCurr  = settings.baseCurrency || 'TWD';
+  const viewCurr  = AppState.settlementViewCurrency || settings.defaultInputCurrency || baseCurr;
+  const sym       = currencySymbol(viewCurr);
+  const cvtRate   = (viewCurr !== baseCurr) ? (settings.rates?.[viewCurr] || 1) : 1;
+  const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
+
   const items = [];
   let totalPaid = 0, totalOwed = 0;
 
@@ -741,25 +753,25 @@ function copyMemberDetailText(memberId, pid) {
     items.forEach(item => {
       const payerStr = item.isPayer ? `${member.name}（你付的）` : item.payerName;
       text += `・${item.name}（${item.date}）\n`;
-      text += `  總額 ${sym}${fmtAmt(item.total)} ／ 份額 ${sym}${fmtAmt(item.share)}  付款人：${payerStr}\n`;
+      text += `  總額 ${sym}${fmtAmt(cvt(item.total))} ／ 份額 ${sym}${fmtAmt(cvt(item.share))}  付款人：${payerStr}\n`;
     });
     text += `\n`;
   }
 
-  text += `💰 你付了：${sym}${fmtAmt(totalPaid)}\n`;
-  text += `💸 你應付（給他人）：${sym}${fmtAmt(totalOwed)}\n`;
+  text += `💰 你付了：${sym}${fmtAmt(cvt(totalPaid))}\n`;
+  text += `💸 你應付（給他人）：${sym}${fmtAmt(cvt(totalOwed))}\n`;
 
-  if (net > 0.01)       text += `📊 淨額：+${sym}${fmtAmt(net)}（應收回）\n`;
-  else if (net < -0.01) text += `📊 淨額：-${sym}${fmtAmt(Math.abs(net))}（需轉帳）\n`;
+  if (net > 0.01)       text += `📊 淨額：+${sym}${fmtAmt(cvt(net))}（應收回）\n`;
+  else if (net < -0.01) text += `📊 淨額：-${sym}${fmtAmt(cvt(Math.abs(net)))}（需轉帳）\n`;
   else                  text += `📊 淨額：已平衡\n`;
 
   if (settlements.length > 0) {
     text += `\n💳 結算建議：\n`;
     settlements.forEach(t => {
       if (t.debtorName === member.name)
-        text += `  轉帳給 ${t.creditorName} ${sym}${fmtAmt(t.amount)}\n`;
+        text += `  轉帳給 ${t.creditorName} ${sym}${fmtAmt(cvt(t.amount))}\n`;
       else
-        text += `  向 ${t.debtorName} 收 ${sym}${fmtAmt(t.amount)}\n`;
+        text += `  向 ${t.debtorName} 收 ${sym}${fmtAmt(cvt(t.amount))}\n`;
     });
   }
 
