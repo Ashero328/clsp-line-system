@@ -440,7 +440,9 @@ function updateSplitPreview(project) {
   if (pids.length === 0) { preview.textContent = '請選擇分攤成員'; return; }
   const share = amount > 0 ? Math.floor(amount / pids.length) : 0;
   const names = pids.map(id => (project.members.find(m => m.id === id) || {name:'?'}).name);
-  preview.textContent = `由 ${names.join('、')} ${pids.length} 人均分，每人 ${AppState.projectCurrencySymbol}${fmtAmt(share)}`;
+  const inputCurrCode = document.getElementById('input-expense-currency')?.value || AppState.projectBaseCurrency;
+  const inputCurrSym  = currencySymbol(inputCurrCode);
+  preview.textContent = `由 ${names.join('、')} ${pids.length} 人均分，每人 ${inputCurrSym}${fmtAmt(share)}`;
 }
 
 function exportExpensesCSV(pid) {
