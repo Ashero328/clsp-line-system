@@ -35,8 +35,9 @@ const AppState = {
   editingProjectId:       null,
   projectCurrencySymbol:  'NT$',
   projectBaseCurrency:    'TWD',
-  memberDetailMemberId:   null,
-  pendingJoinData:        null,  // stores fetched project data before user confirms join
+  memberDetailMemberId:     null,
+  pendingJoinData:          null,  // stores fetched project data before user confirms join
+  settlementViewCurrency:   null,
 };
 
 // ── Block 4: Navigation ─────────────────────────────────────
@@ -227,8 +228,12 @@ function renderProjectDetail(pid) {
       const payer    = project.members.find(m => m.id === e.payerId);
       const iconKey  = e.icon || detectIcon(e.name);
       const iconCls  = iconColorClass(iconKey);
-      const origLine = (e.currency && e.currency !== AppState.projectBaseCurrency && e.originalAmount != null)
-        ? `<p class="font-label txt-xs clr-muted mt-0.5">${e.originalAmount} ${e.currency}</p>`
+      const hasForeign = e.currency && e.currency !== AppState.projectBaseCurrency && e.originalAmount != null;
+      const bigAmt   = hasForeign
+        ? `${currencySymbol(e.currency)}${fmtAmt(e.originalAmount)}`
+        : `${sym}${fmtAmt(e.amount)}`;
+      const smallAmt = hasForeign
+        ? `<p class="font-label txt-xs clr-muted mt-0.5">${sym}${fmtAmt(e.amount)}</p>`
         : '';
       return `
         <div class="expense-card">
@@ -248,8 +253,8 @@ function renderProjectDetail(pid) {
             <div class="flex flex-col items-end gap-2 flex-shrink-0">
               <div class="text-right">
                 <p class="expense-amt-lbl font-label">金額</p>
-                <p class="expense-amount font-headline">${sym}${fmtAmt(e.amount)}</p>
-                ${origLine}
+                <p class="expense-amount font-headline">${bigAmt}</p>
+                ${smallAmt}
               </div>
               <div class="flex gap-1.5">
                 <button class="edit-exp-btn btn-edit-sm w-9 h-9 rounded-xl flex items-center justify-center" data-eid="${e.id}">
@@ -460,10 +465,34 @@ function renderSettlement(pid) {
   const project  = getAllProjects().find(p => p.id === pid);
   if (!project) return;
   const expenses = getExpenses(pid);
-  const total    = expenses.reduce((s, e) => s + e.amount, 0);
 
-  const sym = AppState.projectCurrencySymbol;
-  document.getElementById('stat-total').textContent    = sym + fmtAmt(total);
+  // ── Currency toggle setup ────────────────────────────────────
+  const settings   = getProjectSettings(pid);
+  const baseCurr   = settings.baseCurrency || 'TWD';
+  const inputCurr  = settings.defaultInputCurrency || baseCurr;
+  const hasDual    = inputCurr !== baseCurr;
+
+  if (!AppState.settlementViewCurrency) AppState.settlementViewCurrency = inputCurr;
+  const viewCurr = AppState.settlementViewCurrency;
+  const sym      = currencySymbol(viewCurr);
+
+  const toggleEl = document.getElementById('settlement-currency-toggle');
+  if (toggleEl) {
+    toggleEl.classList.toggle('hidden', !hasDual);
+    if (hasDual) {
+      document.getElementById('toggle-base-curr').textContent  = `${currencySymbol(baseCurr)}（${baseCurr}）`;
+      document.getElementById('toggle-input-curr').textContent = `${currencySymbol(inputCurr)}（${inputCurr}）`;
+      document.getElementById('toggle-base-curr').classList.toggle('toggle-pill-active',  viewCurr === baseCurr);
+      document.getElementById('toggle-input-curr').classList.toggle('toggle-pill-active', viewCurr === inputCurr);
+    }
+  }
+
+  // Amount converter: base → viewCurr
+  const cvtRate = (viewCurr !== baseCurr) ? (settings.rates?.[viewCurr] || 1) : 1;
+  const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
+
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  document.getElementById('stat-total').textContent    = sym + fmtAmt(cvt(total));
   document.getElementById('stat-members').textContent  = project.members.length + ' 人';
   document.getElementById('stat-expenses').textContent = expenses.length + ' 筆';
 
@@ -499,7 +528,7 @@ function renderSettlement(pid) {
     const balanceChips = netBalances.map(nb => {
       const cls  = nb.balance > 0.01 ? 'debt-creditor' : nb.balance < -0.01 ? 'debt-debtor' : 'chip-inactive';
       const sign = nb.balance > 0.01 ? '+' : '';
-      return `<span class="rounded-full px-3 py-1.5 font-label font-bold txt-md ${cls}">${esc(nb.memberName)} ${sign}${sym}${fmtAmt(Math.abs(nb.balance))}</span>`;
+      return `<span class="rounded-full px-3 py-1.5 font-label font-bold txt-md ${cls}">${esc(nb.memberName)} ${sign}${sym}${fmtAmt(cvt(Math.abs(nb.balance)))}</span>`;
     }).join('');
 
     const txRows = transactions.map(t => {
@@ -510,7 +539,7 @@ function renderSettlement(pid) {
         <span class="debt-debtor rounded-full px-3 py-1.5 font-label font-bold txt-md">${esc(t.debtorName)}</span>
         <span class="material-symbols-outlined flex-shrink-0 clr-primary">arrow_forward</span>
         <span class="debt-creditor rounded-full px-3 py-1.5 font-label font-bold txt-md">${esc(t.creditorName)}</span>
-        <span class="font-headline font-bold ml-auto txt-xl clr-primary">${sym}${fmtAmt(t.amount)}</span>
+        <span class="font-headline font-bold ml-auto txt-xl clr-primary">${sym}${fmtAmt(cvt(t.amount))}</span>
         <button class="settle-btn${done ? ' settled' : ''}" data-tx-key="${esc(key)}">
           <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' ${done ? 1 : 0};">check_circle</span>
         </button>
@@ -538,7 +567,7 @@ function renderSettlement(pid) {
           <span class="debt-debtor rounded-full px-2.5 py-1 font-label font-bold txt-base">${esc(d.debtorName)}</span>
           <span class="material-symbols-outlined txt-xl clr-muted">arrow_forward</span>
           <span class="debt-creditor rounded-full px-2.5 py-1 font-label font-bold txt-base">${esc(d.creditorName)}</span>
-          <span class="font-label font-semibold ml-auto txt-md clr-surface">${sym}${fmtAmt(d.amount)}</span>
+          <span class="font-label font-semibold ml-auto txt-md clr-surface">${sym}${fmtAmt(cvt(d.amount))}</span>
           <button class="settle-btn${done ? ' settled' : ''}" data-tx-key="${esc(key)}">
             <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' ${done ? 1 : 0};">check_circle</span>
           </button>
@@ -549,7 +578,7 @@ function renderSettlement(pid) {
           <div class="flex items-center gap-2 mb-1">
             <span class="material-symbols-outlined txt-xl clr-primary">receipt</span>
             <span class="font-headline font-semibold txt-body flex-1 clr-surface">${esc(r.expenseName)}</span>
-            <span class="font-headline font-bold txt-body clr-primary">${sym}${fmtAmt(r.expenseAmount)}</span>
+            <span class="font-headline font-bold txt-body clr-primary">${sym}${fmtAmt(cvt(r.expenseAmount))}</span>
           </div>
           ${rows}
         </div>`;
@@ -1096,9 +1125,9 @@ function bindAllEvents() {
   // Project detail navigation
   document.getElementById('btn-project-detail-back').addEventListener('click', () => { renderHomeScreen(); showScreen('screen-home'); });
   document.getElementById('detail-nav-home').addEventListener('click', () => { renderHomeScreen(); showScreen('screen-home'); });
-  document.getElementById('detail-nav-settlement').addEventListener('click', () => { renderSettlement(AppState.currentProjectId); showScreen('screen-settlement'); });
+  document.getElementById('detail-nav-settlement').addEventListener('click', () => { AppState.settlementViewCurrency = null; renderSettlement(AppState.currentProjectId); showScreen('screen-settlement'); });
   document.getElementById('btn-new-expense').addEventListener('click', () => navigateToExpenseForm(AppState.currentProjectId, null));
-  document.getElementById('btn-go-settlement').addEventListener('click', () => { renderSettlement(AppState.currentProjectId); showScreen('screen-settlement'); });
+  document.getElementById('btn-go-settlement').addEventListener('click', () => { AppState.settlementViewCurrency = null; renderSettlement(AppState.currentProjectId); showScreen('screen-settlement'); });
 
   // Icon picker
   buildIconPicker();
@@ -1177,6 +1206,17 @@ function bindAllEvents() {
     if (!project) return;
     project.algorithm = project.algorithm === 'itemized' ? 'roundtable' : 'itemized';
     saveProject(project);
+    renderSettlement(AppState.currentProjectId);
+  });
+
+  document.getElementById('toggle-base-curr').addEventListener('click', () => {
+    const settings = getProjectSettings(AppState.currentProjectId);
+    AppState.settlementViewCurrency = settings.baseCurrency || 'TWD';
+    renderSettlement(AppState.currentProjectId);
+  });
+  document.getElementById('toggle-input-curr').addEventListener('click', () => {
+    const settings = getProjectSettings(AppState.currentProjectId);
+    AppState.settlementViewCurrency = settings.defaultInputCurrency || settings.baseCurrency || 'TWD';
     renderSettlement(AppState.currentProjectId);
   });
 
