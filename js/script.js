@@ -781,11 +781,38 @@ function copyMemberDetailText(memberId, pid) {
 }
 
 // ── Block 7: Navigation Helpers ─────────────────────────────
+
+async function autoFetchRates(pid) {
+  const KEY = 'clsp_rates_auto_' + pid;
+  const last = parseInt(localStorage.getItem(KEY) || '0', 10);
+  if (Date.now() - last < 86400000) return; // within 24h, skip
+
+  const settings  = getProjectSettings(pid);
+  const baseCurr  = settings.baseCurrency || 'TWD';
+  try {
+    const res  = await fetch(`https://open.er-api.com/v6/latest/${baseCurr}`);
+    const data = await res.json();
+    if (data.result !== 'success') return;
+
+    const newRates = { ...settings.rates };
+    CURRENCIES.forEach(c => {
+      if (c.code === baseCurr) return;
+      if (data.rates[c.code] && data.rates[c.code] > 0)
+        newRates[c.code] = parseFloat((1 / data.rates[c.code]).toFixed(4));
+    });
+    saveProjectSettings(pid, { ...settings, rates: newRates });
+    localStorage.setItem(KEY, Date.now().toString());
+  } catch {
+    // silent fail — user can manually update in settings
+  }
+}
+
 function navigateToProject(pid) {
   AppState.currentProjectId = pid;
   const settings = getProjectSettings(pid);
   AppState.projectBaseCurrency   = settings.baseCurrency || 'TWD';
   AppState.projectCurrencySymbol = currencySymbol(settings.baseCurrency || 'TWD');
+  autoFetchRates(pid); // fire-and-forget, updates rates silently if >24h since last update
   renderProjectDetail(pid);
   showScreen('screen-project-detail');
 }
@@ -1318,6 +1345,7 @@ function bindAllEvents() {
       });
       const now = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
       document.getElementById('settings-rates-updated').textContent = `更新 ${now}`;
+      localStorage.setItem('clsp_rates_auto_' + AppState.currentProjectId, Date.now().toString());
     } catch {
       alert('匯率更新失敗，請確認網路連線');
     } finally {
