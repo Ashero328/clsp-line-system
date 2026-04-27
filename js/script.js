@@ -239,7 +239,7 @@ function renderProjectDetail(pid) {
   empty.style.display = 'none';
 
   list.innerHTML = [...expenses]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => b.id > a.id ? 1 : -1)
     .map(e => {
       const payer    = project.members.find(m => m.id === e.payerId);
       const iconKey  = e.icon || detectIcon(e.name);
