@@ -822,6 +822,13 @@ function resetCreateForm() {
   AppState.pendingCoverImage = null;
   AppState.pendingDate       = today;
   AppState.editingProjectId  = null;
+
+  const currSel = document.getElementById('select-project-default-currency');
+  if (currSel) {
+    currSel.innerHTML = CURRENCIES.map(c =>
+      `<option value="${c.code}" ${c.code === 'TWD' ? 'selected' : ''}>${c.symbol} ${c.name}（${c.code}）</option>`
+    ).join('');
+  }
   renderPendingMemberChips();
 
   const titleEl  = document.getElementById('create-project-title');
@@ -931,6 +938,14 @@ function openEditProjectForm(pid) {
   AppState.pendingAlgorithm = project.algorithm;
   document.getElementById('algo-card-itemized').classList.toggle('algo-selected', project.algorithm === 'itemized');
   document.getElementById('algo-card-roundtable').classList.toggle('algo-selected', project.algorithm === 'roundtable');
+
+  const existingCurr = getProjectSettings(pid).defaultInputCurrency || 'TWD';
+  const currSel = document.getElementById('select-project-default-currency');
+  if (currSel) {
+    currSel.innerHTML = CURRENCIES.map(c =>
+      `<option value="${c.code}" ${c.code === existingCurr ? 'selected' : ''}>${c.symbol} ${c.name}（${c.code}）</option>`
+    ).join('');
+  }
 
   const titleEl  = document.getElementById('create-project-title');
   const submitBtn= document.getElementById('btn-create-project-submit');
@@ -1045,6 +1060,8 @@ function bindAllEvents() {
     if (!name)                              { alert('請輸入專案名稱'); return; }
     if (AppState.pendingMembers.length < 2) { alert('至少需要 2 位成員'); return; }
 
+    const defaultCurr = document.getElementById('select-project-default-currency')?.value || 'TWD';
+
     if (AppState.editingProjectId) {
       const projects = getAllProjects();
       const p = projects.find(x => x.id === AppState.editingProjectId);
@@ -1055,17 +1072,22 @@ function bindAllEvents() {
         p.algorithm   = AppState.pendingAlgorithm;
         p.coverImage  = AppState.pendingCoverImage || null;
         saveProject(p);
+        const s = getProjectSettings(AppState.editingProjectId);
+        saveProjectSettings(AppState.editingProjectId, { ...s, defaultInputCurrency: defaultCurr });
       }
       AppState.editingProjectId = null;
     } else {
+      const newId = generateId();
       saveProject({
-        id: generateId(), name,
+        id: newId, name,
         createdDate: date + 'T00:00:00.000Z',
         members:    AppState.pendingMembers.slice(),
         algorithm:  AppState.pendingAlgorithm,
         coverImage: AppState.pendingCoverImage || null,
         status:     'active'
       });
+      const s = getProjectSettings(newId);
+      saveProjectSettings(newId, { ...s, defaultInputCurrency: defaultCurr });
     }
     renderHomeScreen();
     showScreen('screen-home');
