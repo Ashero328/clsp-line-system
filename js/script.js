@@ -744,16 +744,17 @@ function copyMemberDetailText(memberId, pid) {
 
   let text = `【ClearSplit 帳目明細】\n`;
   text += `專案：${project.name}\n`;
-  text += `查詢對象：${member.name}\n\n`;
+  text += `對象：${member.name}\n\n`;
 
   if (items.length === 0) {
     text += `（沒有參與任何帳目）\n`;
   } else {
-    text += `📋 參與帳目：\n`;
+    text += `參與帳目：\n`;
     items.forEach(item => {
       const payerStr = item.isPayer ? `${member.name}（你付的）` : item.payerName;
-      text += `・${item.name}（${item.date}）\n`;
-      text += `  總額 ${sym}${fmtAmt(cvt(item.total))} ／ 份額 ${sym}${fmtAmt(cvt(item.share))}  付款人：${payerStr}\n`;
+      const d = item.date ? item.date.slice(5).replace('-', '/') : '';
+      text += `・${item.name}（${d}）總額 ${sym}${fmtAmt(cvt(item.total))} ／ 份額 ${sym}${fmtAmt(cvt(item.share))}\n`;
+      text += `  付款人：${payerStr}\n`;
     });
     text += `\n`;
   }
