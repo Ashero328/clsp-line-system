@@ -75,10 +75,14 @@ function getParticipants(expense, members) {
 function calcShares(amount, participantIds) {
   const n = participantIds.length;
   if (n === 0) return {};
-  const base = Math.floor(amount / n);
-  const rem = amount - base * n;
+  // Round to 1 decimal place; distribute the rounding remainder to the first few members
+  // so no single member absorbs a disproportionate share due to insertion order.
+  const base = Math.floor(amount * 10 / n) / 10;
+  const extraCount = Math.round(amount * 10 - base * 10 * n);
   const shares = {};
-  participantIds.forEach((id, i) => { shares[id] = base + (i === n - 1 ? rem : 0); });
+  participantIds.forEach((id, i) => {
+    shares[id] = Math.round((i < extraCount ? base + 0.1 : base) * 10) / 10;
+  });
   return shares;
 }
 

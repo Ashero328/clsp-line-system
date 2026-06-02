@@ -57,7 +57,7 @@ function esc(s) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function fmtAmt(n) {
-  return Number(n || 0).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+  return Number(n || 0).toLocaleString('zh-TW', { maximumFractionDigits: 1 });
 }
 function fmtDate(s) {
   if (!s) return '';
@@ -183,7 +183,7 @@ function renderProjectDetail(pid) {
   if (!project) { showScreen('screen-home'); return; }
   const expenses = getExpenses(pid);
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const avg   = project.members.length ? Math.round(total / project.members.length) : 0;
+  const avg   = project.members.length ? Math.round(total / project.members.length * 10) / 10 : 0;
   const sym   = AppState.projectCurrencySymbol;
 
   const settings  = getProjectSettings(pid);
@@ -438,7 +438,7 @@ function updateSplitPreview(project) {
 
   const preview = document.getElementById('split-preview');
   if (pids.length === 0) { preview.textContent = '請選擇分攤成員'; return; }
-  const share = amount > 0 ? Math.floor(amount / pids.length) : 0;
+  const share = amount > 0 ? Math.round(amount / pids.length * 10) / 10 : 0;
   const names = pids.map(id => (project.members.find(m => m.id === id) || {name:'?'}).name);
   const inputCurrCode = document.getElementById('input-expense-currency')?.value || AppState.projectBaseCurrency;
   const inputCurrSym  = currencySymbol(inputCurrCode);
@@ -630,7 +630,8 @@ function openMemberDetailModal(memberId, pid) {
   for (const e of expenses) {
     const participants = getParticipants(e, project.members);
     if (!participants.includes(memberId)) continue;
-    const share    = e.amount / participants.length;
+    const shares   = calcShares(e.amount, participants);
+    const share    = shares[memberId] || 0;
     const isPayer  = e.payerId === memberId;
     const payer    = project.members.find(m => m.id === e.payerId);
     if (isPayer) totalPaid += e.amount;
@@ -730,7 +731,8 @@ function copyMemberDetailText(memberId, pid) {
   for (const e of expenses) {
     const participants = getParticipants(e, project.members);
     if (!participants.includes(memberId)) continue;
-    const share   = e.amount / participants.length;
+    const shares  = calcShares(e.amount, participants);
+    const share   = shares[memberId] || 0;
     const isPayer = e.payerId === memberId;
     const payer   = project.members.find(m => m.id === e.payerId);
     if (isPayer) totalPaid += e.amount;
