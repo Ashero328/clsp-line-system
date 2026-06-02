@@ -1113,12 +1113,21 @@ function bindAllEvents() {
     });
   });
 
-  // Cover image upload — create a throw-away input off-DOM each time to avoid
-  // browser throttling and bubbling issues with repeated programmatic .click() calls.
+  // Cover image upload — append a fresh hidden input to body each time.
+  // Safari/WebKit require the element to be in the DOM for .click() to open the picker;
+  // using a new element each time avoids the "same file / cancel → re-click" block.
   document.getElementById('cover-image-zone').addEventListener('click', () => {
+    const prev = document.getElementById('_cover_tmp');
+    if (prev) prev.remove();
+
     const inp = document.createElement('input');
+    inp.id = '_cover_tmp';
     inp.type = 'file'; inp.accept = 'image/*';
+    inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
+    document.body.appendChild(inp);
+
     inp.addEventListener('change', async e => {
+      inp.remove();
       const file = e.target.files[0];
       if (!file) return;
       if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
