@@ -1113,30 +1113,27 @@ function bindAllEvents() {
     });
   });
 
-  // Cover image upload
-  // Replace the input element each time to bypass browser throttling of repeated .click() calls.
-  const onCoverImageChange = async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
-    try {
-      const compressed = await compressImage(file, 1200, 0.82);
-      AppState.pendingCoverImage = compressed;
-      const preview = document.getElementById('cover-image-preview');
-      preview.src = compressed;
-      preview.classList.remove('hidden');
-      document.getElementById('cover-image-placeholder').style.display = 'none';
-      document.getElementById('btn-remove-cover').classList.remove('hidden');
-    } catch {
-      alert('圖片處理失敗，請重試');
-    }
-  };
+  // Cover image upload — create a throw-away input off-DOM each time to avoid
+  // browser throttling and bubbling issues with repeated programmatic .click() calls.
   document.getElementById('cover-image-zone').addEventListener('click', () => {
-    const old = document.getElementById('input-cover-image');
     const inp = document.createElement('input');
-    inp.type = 'file'; inp.id = 'input-cover-image'; inp.accept = 'image/*'; inp.className = 'hidden';
-    inp.addEventListener('change', onCoverImageChange);
-    old.replaceWith(inp);
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
+      try {
+        const compressed = await compressImage(file, 1200, 0.82);
+        AppState.pendingCoverImage = compressed;
+        const preview = document.getElementById('cover-image-preview');
+        preview.src = compressed;
+        preview.classList.remove('hidden');
+        document.getElementById('cover-image-placeholder').style.display = 'none';
+        document.getElementById('btn-remove-cover').classList.remove('hidden');
+      } catch {
+        alert('圖片處理失敗，請重試');
+      }
+    });
     inp.click();
   });
   document.getElementById('btn-remove-cover').addEventListener('click', e => {
