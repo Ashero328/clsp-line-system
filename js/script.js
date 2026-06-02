@@ -1113,16 +1113,14 @@ function bindAllEvents() {
     });
   });
 
-  // Cover image upload — zone is now a <label for="input-cover-image">, so the browser
-  // natively opens the picker on click. We only need to reset the value here so that
-  // re-selecting the same file still fires the change event.
-  document.getElementById('cover-image-zone').addEventListener('click', () => {
-    document.getElementById('input-cover-image').value = '';
-  });
+  // Cover image upload — zone is a <label for="input-cover-image">.
+  // Do NOT touch inp.value in the click handler — it interferes with the label's
+  // native picker-open timing in LINE WebView and causes the second tap to fail.
+  // Instead, reset value at the END of change handling so the next tap always sees ''.
   document.getElementById('input-cover-image').addEventListener('change', async e => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
+    if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); e.target.value = ''; return; }
     try {
       const compressed = await compressImage(file, 1200, 0.82);
       AppState.pendingCoverImage = compressed;
@@ -1134,6 +1132,7 @@ function bindAllEvents() {
     } catch {
       alert('圖片處理失敗，請重試');
     }
+    e.target.value = ''; // reset after processing so re-selecting same file fires change
   });
   document.getElementById('btn-remove-cover').addEventListener('click', e => {
     e.stopPropagation();
