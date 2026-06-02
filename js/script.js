@@ -206,8 +206,16 @@ function renderProjectDetail(pid) {
     );
   }
 
-  const inputTotal = hasDual ? Math.round(total / inputRate) : total;
-  const inputAvg   = hasDual ? Math.round(avg   / inputRate) : avg;
+  // Sum originalAmount where available to avoid round-trip float errors.
+  const inputTotal = hasDual
+    ? expenses.filter(e => e.amount > 0).reduce((s, e) =>
+        s + (e.currency === inputCurr && e.originalAmount != null
+          ? e.originalAmount
+          : Math.round(e.amount / inputRate)), 0)
+    : total;
+  const inputAvg = hasDual
+    ? (project.members.length ? Math.floor(inputTotal / project.members.length * 10) / 10 : 0)
+    : avg;
 
   document.getElementById('detail-project-name').textContent  = project.name;
   document.getElementById('detail-total-amount').textContent  = fmtAmt(inputTotal);
