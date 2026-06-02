@@ -640,10 +640,11 @@ function openMemberDetailModal(memberId, pid) {
     items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
   }
 
-  const net = totalPaid - totalOwed;
-
   const { transactions } = calculateRoundtable(project.members, expenses);
-  const settlements = transactions.filter(t => t.debtorName === member.name || t.creditorName === member.name);
+  const settlements    = transactions.filter(t => t.debtorId === memberId || t.creditorId === memberId);
+  const totalToReceive = settlements.filter(t => t.creditorId === memberId).reduce((s, t) => s + t.amount, 0);
+  const totalToPay     = settlements.filter(t => t.debtorId === memberId).reduce((s, t) => s + t.amount, 0);
+  const netSettle      = totalToReceive - totalToPay;
 
   document.getElementById('member-detail-title').textContent = member.name + ' 的帳目明細';
 
@@ -670,10 +671,10 @@ function openMemberDetailModal(memberId, pid) {
   }
 
   const summaryEl = document.getElementById('member-detail-summary');
-  const netSpan = net > 0.01
-    ? `<span class="clr-primary font-bold">+${sym}${fmtAmt(cvt(net))} 應收回</span>`
-    : net < -0.01
-    ? `<span style="color:var(--clr-error)" class="font-bold">-${sym}${fmtAmt(cvt(Math.abs(net)))} 需轉帳</span>`
+  const netSpan = netSettle > 0.01
+    ? `<span class="clr-primary font-bold">+${sym}${fmtAmt(cvt(netSettle))} 應收回</span>`
+    : netSettle < -0.01
+    ? `<span style="color:var(--clr-error)" class="font-bold">-${sym}${fmtAmt(cvt(Math.abs(netSettle)))} 需轉帳</span>`
     : `<span class="clr-muted">已平衡</span>`;
 
   const settlementLines = settlements.map(t =>
@@ -741,9 +742,11 @@ function copyMemberDetailText(memberId, pid) {
     items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
   }
 
-  const net = totalPaid - totalOwed;
   const { transactions } = calculateRoundtable(project.members, expenses);
-  const settlements = transactions.filter(t => t.debtorName === member.name || t.creditorName === member.name);
+  const settlements    = transactions.filter(t => t.debtorId === memberId || t.creditorId === memberId);
+  const totalToReceive = settlements.filter(t => t.creditorId === memberId).reduce((s, t) => s + t.amount, 0);
+  const totalToPay     = settlements.filter(t => t.debtorId === memberId).reduce((s, t) => s + t.amount, 0);
+  const netSettle      = totalToReceive - totalToPay;
 
   let text = `【ClearSplit 帳目明細】\n`;
   text += `專案：${project.name}\n`;
@@ -765,9 +768,9 @@ function copyMemberDetailText(memberId, pid) {
   text += `💰 你付了：${sym}${fmtAmt(cvt(totalPaid))}\n`;
   text += `💸 你應付（給他人）：${sym}${fmtAmt(cvt(totalOwed))}\n`;
 
-  if (net > 0.01)       text += `📊 淨額：+${sym}${fmtAmt(cvt(net))}（應收回）\n`;
-  else if (net < -0.01) text += `📊 淨額：-${sym}${fmtAmt(cvt(Math.abs(net)))}（需轉帳）\n`;
-  else                  text += `📊 淨額：已平衡\n`;
+  if (netSettle > 0.01)       text += `📊 淨額：+${sym}${fmtAmt(cvt(netSettle))}（應收回）\n`;
+  else if (netSettle < -0.01) text += `📊 淨額：-${sym}${fmtAmt(cvt(Math.abs(netSettle)))}（需轉帳）\n`;
+  else                        text += `📊 淨額：已平衡\n`;
 
   if (settlements.length > 0) {
     text += `\n💳 結算建議：\n`;
@@ -1112,7 +1115,9 @@ function bindAllEvents() {
 
   // Cover image upload
   document.getElementById('cover-image-zone').addEventListener('click', () => {
-    document.getElementById('input-cover-image').click();
+    const inp = document.getElementById('input-cover-image');
+    inp.value = '';
+    inp.click();
   });
   document.getElementById('input-cover-image').addEventListener('change', async e => {
     const file = e.target.files[0];
