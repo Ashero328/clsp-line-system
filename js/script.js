@@ -1118,7 +1118,7 @@ function bindAllEvents() {
   const onCoverImageChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('圖片超過 5MB，請選擇較小的圖片'); return; }
+    if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
     try {
       const compressed = await compressImage(file, 1200, 0.82);
       AppState.pendingCoverImage = compressed;
