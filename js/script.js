@@ -1114,15 +1114,11 @@ function bindAllEvents() {
   });
 
   // Cover image upload
-  document.getElementById('cover-image-zone').addEventListener('click', () => {
-    const inp = document.getElementById('input-cover-image');
-    inp.value = '';
-    inp.click();
-  });
-  document.getElementById('input-cover-image').addEventListener('change', async e => {
+  // Replace the input element each time to bypass browser throttling of repeated .click() calls.
+  const onCoverImageChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('圖片超過 5MB，請選擇較小的圖片'); e.target.value = ''; return; }
+    if (file.size > 5 * 1024 * 1024) { alert('圖片超過 5MB，請選擇較小的圖片'); return; }
     try {
       const compressed = await compressImage(file, 1200, 0.82);
       AppState.pendingCoverImage = compressed;
@@ -1133,13 +1129,19 @@ function bindAllEvents() {
       document.getElementById('btn-remove-cover').classList.remove('hidden');
     } catch {
       alert('圖片處理失敗，請重試');
-      e.target.value = '';
     }
+  };
+  document.getElementById('cover-image-zone').addEventListener('click', () => {
+    const old = document.getElementById('input-cover-image');
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.id = 'input-cover-image'; inp.accept = 'image/*'; inp.className = 'hidden';
+    inp.addEventListener('change', onCoverImageChange);
+    old.replaceWith(inp);
+    inp.click();
   });
   document.getElementById('btn-remove-cover').addEventListener('click', e => {
     e.stopPropagation();
     AppState.pendingCoverImage = null;
-    document.getElementById('input-cover-image').value = '';
     document.getElementById('cover-image-preview').classList.add('hidden');
     document.getElementById('cover-image-preview').src = '';
     document.getElementById('cover-image-placeholder').style.display = '';
