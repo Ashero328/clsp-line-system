@@ -503,7 +503,7 @@ function renderSettlement(pid) {
   const inputCurr  = settings.defaultInputCurrency || baseCurr;
   const hasDual    = inputCurr !== baseCurr;
 
-  if (!AppState.settlementViewCurrency) AppState.settlementViewCurrency = inputCurr;
+  if (!AppState.settlementViewCurrency) AppState.settlementViewCurrency = baseCurr;
   const viewCurr = AppState.settlementViewCurrency;
   const sym      = currencySymbol(viewCurr);
 
