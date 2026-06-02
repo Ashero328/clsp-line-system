@@ -1437,26 +1437,21 @@ function _applyLiffProfile(profile) {
 }
 
 async function initializeLiff() {
-  try {
-    await liff.init({ liffId: '2009708366-ZRcDL4VT' });
-    const isJoining = !!new URLSearchParams(location.search).get('join');
-
-    if (liff.isInClient()) {
-      try {
-        const profile = await liff.getProfile();
-        _applyLiffProfile(profile);
-      } catch (e) {
-        // getProfile unavailable (e.g. auth revoked) — app continues without avatar
+  // Only run LIFF SDK when inside the LINE app — liff.init() itself
+  // triggers a login redirect in external browsers regardless of our code.
+  const isLineClient = /Line\//i.test(navigator.userAgent);
+  if (isLineClient) {
+    try {
+      await liff.init({ liffId: '2009708366-ZRcDL4VT' });
+      if (liff.isInClient()) {
+        try {
+          const profile = await liff.getProfile();
+          _applyLiffProfile(profile);
+        } catch (e) {}
       }
-    } else {
-      // External browser — show avatar if already logged in, but don't force login
-      if (liff.isLoggedIn()) {
-        const profile = await liff.getProfile();
-        _applyLiffProfile(profile);
-      }
+    } catch (err) {
+      console.warn('LIFF init failed:', err.message);
     }
-  } catch (err) {
-    console.warn('LIFF not available, running in browser mode:', err.message);
   }
   initApp();
 }
