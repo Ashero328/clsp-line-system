@@ -57,7 +57,8 @@ function esc(s) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function fmtAmt(n) {
-  return Number(n || 0).toLocaleString('zh-TW', { maximumFractionDigits: 1 });
+  const v = Math.floor(Number(n || 0) * 10) / 10;
+  return v.toLocaleString('zh-TW', { maximumFractionDigits: 1 });
 }
 function fmtDate(s) {
   if (!s) return '';
@@ -183,7 +184,7 @@ function renderProjectDetail(pid) {
   if (!project) { showScreen('screen-home'); return; }
   const expenses = getExpenses(pid);
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const avg   = project.members.length ? Math.round(total / project.members.length * 10) / 10 : 0;
+  const avg   = project.members.length ? Math.floor(total / project.members.length * 10) / 10 : 0;
   const sym   = AppState.projectCurrencySymbol;
 
   const settings  = getProjectSettings(pid);
@@ -438,7 +439,7 @@ function updateSplitPreview(project) {
 
   const preview = document.getElementById('split-preview');
   if (pids.length === 0) { preview.textContent = '請選擇分攤成員'; return; }
-  const share = amount > 0 ? Math.round(amount / pids.length * 10) / 10 : 0;
+  const share = amount > 0 ? Math.floor(amount / pids.length * 10) / 10 : 0;
   const names = pids.map(id => (project.members.find(m => m.id === id) || {name:'?'}).name);
   const inputCurrCode = document.getElementById('input-expense-currency')?.value || AppState.projectBaseCurrency;
   const inputCurrSym  = currencySymbol(inputCurrCode);
@@ -1448,8 +1449,7 @@ async function initializeLiff() {
         // getProfile unavailable (e.g. auth revoked) — app continues without avatar
       }
     } else {
-      // External browser — require login unless arriving via share link
-      if (!isJoining && !liff.isLoggedIn()) { liff.login(); return; }
+      // External browser — show avatar if already logged in, but don't force login
       if (liff.isLoggedIn()) {
         const profile = await liff.getProfile();
         _applyLiffProfile(profile);

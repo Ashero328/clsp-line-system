@@ -75,13 +75,13 @@ function getParticipants(expense, members) {
 function calcShares(amount, participantIds) {
   const n = participantIds.length;
   if (n === 0) return {};
-  // Round to 1 decimal place; distribute the rounding remainder to the first few members
-  // so no single member absorbs a disproportionate share due to insertion order.
-  const base = Math.floor(amount * 10 / n) / 10;
-  const extraCount = Math.round(amount * 10 - base * 10 * n);
+  // Work in integer units of 0.1 to avoid all floating-point drift.
+  // Distribute the remainder (in 0.1 steps) to the first few members.
+  const base10 = Math.floor(amount * 10 / n);   // e.g. 1000*10/3 → 3333
+  const extra   = (amount * 10) - base10 * n;   // pure integer remainder
   const shares = {};
   participantIds.forEach((id, i) => {
-    shares[id] = Math.round((i < extraCount ? base + 0.1 : base) * 10) / 10;
+    shares[id] = (i < extra ? base10 + 1 : base10) / 10;
   });
   return shares;
 }
