@@ -185,20 +185,20 @@
       <div>
         <label class="form-label font-label mb-2 block">封面圖片</label>
         <input id="input-cover-image" type="file" accept="image/*" class="hidden" />
-        <div id="cover-image-zone" class="relative w-full rounded-3xl overflow-hidden cursor-pointer cover-zone">
+        <label id="cover-image-zone" for="input-cover-image" class="relative w-full rounded-3xl overflow-hidden cursor-pointer cover-zone" style="display:block;">
           <div id="cover-image-placeholder"
             class="absolute inset-0 rounded-3xl flex flex-col items-center justify-center gap-2 nm-sunken">
             <div class="w-12 h-12 rounded-2xl nm-raised-sm flex items-center justify-center">
               <span class="material-symbols-outlined clr-muted">add_photo_alternate</span>
             </div>
-            <p class="font-label txt-base clr-muted">點擊上傳封面圖片（最大 5MB）</p>
+            <p class="font-label txt-base clr-muted">點擊上傳封面圖片（最大 10MB）</p>
           </div>
           <img id="cover-image-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden" />
           <button id="btn-remove-cover" type="button"
             class="btn-remove-img absolute top-3 right-3 hidden w-9 h-9 rounded-xl flex items-center justify-center z-10">
             <span class="material-symbols-outlined clr-white txt-xl" style="font-variation-settings:'FILL' 1;">close</span>
           </button>
-        </div>
+        </label>
       </div>
 
       <!-- 預設幣值 -->

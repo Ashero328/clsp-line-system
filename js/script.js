@@ -1113,41 +1113,33 @@ function bindAllEvents() {
     });
   });
 
-  // Cover image upload — append a fresh hidden input to body each time.
-  // Safari/WebKit require the element to be in the DOM for .click() to open the picker;
-  // using a new element each time avoids the "same file / cancel → re-click" block.
+  // Cover image upload — zone is now a <label for="input-cover-image">, so the browser
+  // natively opens the picker on click. We only need to reset the value here so that
+  // re-selecting the same file still fires the change event.
   document.getElementById('cover-image-zone').addEventListener('click', () => {
-    const prev = document.getElementById('_cover_tmp');
-    if (prev) prev.remove();
-
-    const inp = document.createElement('input');
-    inp.id = '_cover_tmp';
-    inp.type = 'file'; inp.accept = 'image/*';
-    inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
-    document.body.appendChild(inp);
-
-    inp.addEventListener('change', async e => {
-      inp.remove();
-      const file = e.target.files[0];
-      if (!file) return;
-      if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
-      try {
-        const compressed = await compressImage(file, 1200, 0.82);
-        AppState.pendingCoverImage = compressed;
-        const preview = document.getElementById('cover-image-preview');
-        preview.src = compressed;
-        preview.classList.remove('hidden');
-        document.getElementById('cover-image-placeholder').style.display = 'none';
-        document.getElementById('btn-remove-cover').classList.remove('hidden');
-      } catch {
-        alert('圖片處理失敗，請重試');
-      }
-    });
-    inp.click();
+    document.getElementById('input-cover-image').value = '';
+  });
+  document.getElementById('input-cover-image').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
+    try {
+      const compressed = await compressImage(file, 1200, 0.82);
+      AppState.pendingCoverImage = compressed;
+      const preview = document.getElementById('cover-image-preview');
+      preview.src = compressed;
+      preview.classList.remove('hidden');
+      document.getElementById('cover-image-placeholder').style.display = 'none';
+      document.getElementById('btn-remove-cover').classList.remove('hidden');
+    } catch {
+      alert('圖片處理失敗，請重試');
+    }
   });
   document.getElementById('btn-remove-cover').addEventListener('click', e => {
     e.stopPropagation();
+    e.preventDefault(); // prevent label from re-opening picker on remove
     AppState.pendingCoverImage = null;
+    document.getElementById('input-cover-image').value = '';
     document.getElementById('cover-image-preview').classList.add('hidden');
     document.getElementById('cover-image-preview').src = '';
     document.getElementById('cover-image-placeholder').style.display = '';
