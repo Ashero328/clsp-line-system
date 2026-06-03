@@ -568,6 +568,38 @@ body {
 .tx-settled .debt-debtor,
 .tx-settled .debt-creditor { text-decoration: line-through; }
 
+/* ── Calculator Keypad ───────────────────────────────────── */
+.calc-key {
+  background: var(--clr-surface);
+  box-shadow: var(--nm-raised-sm);
+  border: none;
+  border-radius: 16px;
+  padding: 18px 8px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--clr-on-surface);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow var(--tr-fast), transform var(--tr-fast);
+  font-family: inherit;
+}
+.calc-key:active {
+  box-shadow: var(--nm-sunken-sm);
+  transform: scale(0.94);
+}
+.calc-key-op {
+  color: var(--clr-primary);
+}
+.calc-key-confirm {
+  background: var(--clr-primary);
+  color: var(--clr-on-primary);
+  box-shadow: none;
+}
+.calc-key-confirm:active {
+  opacity: 0.85;
+  box-shadow: none;
+}
+
 /* ── Cover Remove Button ─────────────────────────────────── */
 .btn-remove-img {
   background: #0F0F0F;

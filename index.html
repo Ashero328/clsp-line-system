@@ -374,26 +374,15 @@
         </div>
         <div>
           <label class="form-label font-label mb-2 block">金額</label>
-          <div class="nm-input-group rounded-2xl px-4">
-            <input id="input-expense-amount" type="text" inputmode="decimal" placeholder="0"
-              class="flex-1 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;background:transparent;border:none;outline:none;color:var(--clr-on-surface);" />
-            <button type="button" id="btn-toggle-calc" title="計算機"
-              style="background:none;border:none;padding:0 4px 0 8px;cursor:pointer;display:flex;align-items:center;">
-              <span class="material-symbols-outlined clr-muted" style="font-size:20px;">calculate</span>
-            </button>
+          <div class="nm-input-group rounded-2xl px-4" id="calc-trigger" style="cursor:pointer;">
+            <input id="input-expense-amount" type="text" inputmode="none" readonly placeholder="點此輸入金額"
+              class="flex-1 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;background:transparent;border:none;outline:none;color:var(--clr-on-surface);cursor:pointer;" />
+            <span class="material-symbols-outlined clr-muted" style="font-size:18px;padding:0 6px 0 4px;pointer-events:none;">calculate</span>
             <select id="input-expense-currency">
               <!-- populated by JS -->
             </select>
           </div>
-          <div id="calc-toolbar" class="hidden flex gap-1.5 mt-2 px-1">
-            <button type="button" data-op="+" class="calc-op-btn nm-raised-sm rounded-xl font-label font-semibold txt-md clr-surface" style="padding:8px 14px;">+</button>
-            <button type="button" data-op="−" class="calc-op-btn nm-raised-sm rounded-xl font-label font-semibold txt-md clr-surface" style="padding:8px 14px;">−</button>
-            <button type="button" data-op="×" class="calc-op-btn nm-raised-sm rounded-xl font-label font-semibold txt-md clr-surface" style="padding:8px 14px;">×</button>
-            <button type="button" data-op="÷" class="calc-op-btn nm-raised-sm rounded-xl font-label font-semibold txt-md clr-surface" style="padding:8px 14px;">÷</button>
-            <button type="button" id="calc-eq-btn" class="nm-raised-sm rounded-xl font-label font-semibold txt-md" style="padding:8px 18px;color:var(--clr-primary);">=</button>
-          </div>
-          <p id="expense-calc-preview" class="hidden txt-sm font-label font-semibold mt-1 px-2" style="color:var(--clr-primary);"></p>
-          <p id="expense-conversion-preview" class="hidden txt-sm clr-muted font-label mt-1 px-2"></p>
+          <p id="expense-conversion-preview" class="hidden txt-sm clr-muted font-label mt-1.5 px-2"></p>
         </div>
       </div>
 
@@ -775,6 +764,39 @@
 <script src="js/firebase_service.js"></script>
 <!-- UI Layer -->
 <script src="js/script.js"></script>
+
+<!-- ── Calculator Bottom Sheet ─────────────────────────────── -->
+<div id="modal-calc" class="hidden fixed inset-0 flex flex-col justify-end" style="z-index:300;">
+  <div id="calc-backdrop" class="absolute inset-0" style="background:rgba(0,0,0,0.45);"></div>
+  <div class="relative" style="background:var(--clr-surface);border-radius:28px 28px 0 0;padding-bottom:env(safe-area-inset-bottom,0);">
+    <!-- Display -->
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--clr-outline);">
+      <p id="calc-expr-display" class="font-label clr-muted" style="font-size:13px;min-height:18px;letter-spacing:0.5px;"></p>
+      <p id="calc-result-display" class="font-headline font-bold" style="font-size:38px;color:var(--clr-on-surface);min-height:48px;line-height:1.1;">0</p>
+    </div>
+    <!-- Keypad -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px;">
+      <button type="button" data-k="7"  class="calc-key">7</button>
+      <button type="button" data-k="8"  class="calc-key">8</button>
+      <button type="button" data-k="9"  class="calc-key">9</button>
+      <button type="button" data-k="÷"  class="calc-key calc-key-op">÷</button>
+      <button type="button" data-k="4"  class="calc-key">4</button>
+      <button type="button" data-k="5"  class="calc-key">5</button>
+      <button type="button" data-k="6"  class="calc-key">6</button>
+      <button type="button" data-k="×"  class="calc-key calc-key-op">×</button>
+      <button type="button" data-k="1"  class="calc-key">1</button>
+      <button type="button" data-k="2"  class="calc-key">2</button>
+      <button type="button" data-k="3"  class="calc-key">3</button>
+      <button type="button" data-k="−"  class="calc-key calc-key-op">−</button>
+      <button type="button" data-k="."  class="calc-key">.</button>
+      <button type="button" data-k="0"  class="calc-key">0</button>
+      <button type="button" data-k="⌫"  class="calc-key" style="font-size:18px;">⌫</button>
+      <button type="button" data-k="+"  class="calc-key calc-key-op">+</button>
+      <button type="button" id="calc-cancel-btn"  class="calc-key" style="grid-column:span 2;">取消</button>
+      <button type="button" id="calc-confirm-btn" class="calc-key calc-key-confirm" style="grid-column:span 2;">確認</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

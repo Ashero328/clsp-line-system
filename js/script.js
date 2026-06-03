@@ -325,21 +325,6 @@ function renderProjectDetail(pid) {
     }));
 }
 
-function updateCalcPreview() {
-  const inp = document.getElementById('input-expense-amount');
-  const preview = document.getElementById('expense-calc-preview');
-  if (!preview || !inp) return;
-  const val = inp.value.trim();
-  const hasOp = /[+\-×÷*/−]/.test(val);
-  if (!hasOp || !val) { preview.classList.add('hidden'); return; }
-  const result = evalExpr(val);
-  if (result > 0) {
-    preview.textContent = `= ${fmtAmt(result)}`;
-    preview.classList.remove('hidden');
-  } else {
-    preview.classList.add('hidden');
-  }
-}
 
 function updateConversionPreview(settings) {
   const preview  = document.getElementById('expense-conversion-preview');
@@ -1183,43 +1168,56 @@ function bindAllEvents() {
     document.getElementById('btn-remove-cover').classList.add('hidden');
   });
 
-  // Inline calculator toolbar — toggled by the calculator icon button
-  const amtInp     = document.getElementById('input-expense-amount');
-  const calcToolbar = document.getElementById('calc-toolbar');
+  // ── Calculator Bottom Sheet ────────────────────────────────
+  let calcExpr = '';
 
-  document.getElementById('btn-toggle-calc').addEventListener('click', () => {
-    const isOpen = !calcToolbar.classList.contains('hidden');
-    if (isOpen) {
-      // Close: evaluate expression first
-      const val = amtInp.value.trim();
-      if (/[+\-×÷*/−]/.test(val)) {
-        const result = evalExpr(val);
-        if (result > 0) amtInp.value = result;
-      }
-      calcToolbar.classList.add('hidden');
-      document.getElementById('expense-calc-preview').classList.add('hidden');
-    } else {
-      calcToolbar.classList.remove('hidden');
-      amtInp.focus();
+  function calcUpdateDisplay() {
+    const exprEl   = document.getElementById('calc-expr-display');
+    const resultEl = document.getElementById('calc-result-display');
+    exprEl.textContent = calcExpr || '';
+    if (!calcExpr) { resultEl.textContent = '0'; return; }
+    const r = evalExpr(calcExpr);
+    resultEl.textContent = r > 0 ? fmtAmt(r) : calcExpr;
+  }
+
+  function openCalcModal() {
+    const amtInp = document.getElementById('input-expense-amount');
+    calcExpr = amtInp.value ? String(amtInp.value) : '';
+    calcUpdateDisplay();
+    document.getElementById('modal-calc').classList.remove('hidden');
+  }
+
+  function closeCalcModal(confirm) {
+    document.getElementById('modal-calc').classList.add('hidden');
+    if (confirm) {
+      const result = evalExpr(calcExpr);
+      const amtInp = document.getElementById('input-expense-amount');
+      amtInp.value = result > 0 ? result : (calcExpr || '');
+      amtInp.dispatchEvent(new Event('input', { bubbles: true }));
     }
+  }
+
+  document.getElementById('calc-trigger').addEventListener('click', e => {
+    if (e.target.closest('select')) return; // let currency select work normally
+    openCalcModal();
   });
+  document.getElementById('calc-backdrop').addEventListener('click', () => closeCalcModal(false));
+  document.getElementById('calc-cancel-btn').addEventListener('click', () => closeCalcModal(false));
+  document.getElementById('calc-confirm-btn').addEventListener('click', () => closeCalcModal(true));
 
-  amtInp.addEventListener('input', updateCalcPreview);
-
-  document.querySelectorAll('#calc-toolbar [data-op]').forEach(btn => {
-    btn.addEventListener('mousedown', e => e.preventDefault());
+  document.querySelectorAll('#modal-calc [data-k]').forEach(btn => {
     btn.addEventListener('click', () => {
-      amtInp.value += btn.dataset.op;
-      amtInp.focus();
-      updateCalcPreview();
+      const k = btn.dataset.k;
+      if (k === '⌫') {
+        calcExpr = calcExpr.slice(0, -1);
+      } else if (['+', '−', '×', '÷'].includes(k)) {
+        // Replace trailing operator rather than stack them
+        calcExpr = calcExpr.replace(/[+−×÷]$/, '') + k;
+      } else {
+        calcExpr += k;
+      }
+      calcUpdateDisplay();
     });
-  });
-  document.getElementById('calc-eq-btn').addEventListener('mousedown', e => e.preventDefault());
-  document.getElementById('calc-eq-btn').addEventListener('click', () => {
-    const result = evalExpr(amtInp.value);
-    if (result > 0) amtInp.value = result;
-    document.getElementById('expense-calc-preview').classList.add('hidden');
-    amtInp.focus();
   });
 
   // Date sync
