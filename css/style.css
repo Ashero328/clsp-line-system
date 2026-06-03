@@ -605,6 +605,15 @@ body {
   background: var(--clr-surface-low);
 }
 .mdr-dot.is-owed .material-symbols-outlined { color: var(--clr-on-surface-var); font-size: 16px; }
+.mdr-date-header {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--clr-on-surface-var);
+  padding: 12px 0 2px;
+  letter-spacing: 0.03em;
+}
+.mdr-date-header:first-child { padding-top: 2px; }
 
 /* ── Calculator Keyboard ─────────────────────────────────── */
 #modal-calc {

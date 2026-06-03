@@ -675,20 +675,30 @@ function openMemberDetailModal(memberId, pid) {
   if (items.length === 0) {
     list.innerHTML = `<p class="font-label txt-md clr-muted text-center py-8">沒有參與任何帳目</p>`;
   } else {
-    list.innerHTML = items.map(item => `
+    items.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    let lastDate = null;
+    let html = '';
+    for (const item of items) {
+      if (item.date !== lastDate) {
+        lastDate = item.date;
+        html += `<p class="mdr-date-header">${fmtDate(item.date)}</p>`;
+      }
+      html += `
       <div class="member-detail-row">
         <div class="mdr-dot ${item.isPayer ? 'is-payer' : 'is-owed'}">
           <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">${item.isPayer ? 'payments' : 'receipt'}</span>
         </div>
         <div class="flex-1 min-w-0">
           <p class="font-headline font-semibold txt-body clr-surface truncate">${esc(item.name)}</p>
-          <p class="font-label clr-muted" style="font-size:11px;margin-top:2px;">${fmtDate(item.date)}${item.isPayer ? '' : ' · ' + esc(item.payerName) + ' 付'}</p>
+          ${!item.isPayer ? `<p class="font-label clr-muted" style="font-size:11px;margin-top:2px;">${esc(item.payerName)} 付</p>` : ''}
         </div>
         <div class="text-right flex-shrink-0">
           <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">${item.isPayer ? '+' : '−'}${sym}${fmtAmt(cvt(item.share))}</p>
           <p class="font-label clr-muted" style="font-size:11px;">共 ${sym}${fmtAmt(cvt(item.total))}</p>
         </div>
-      </div>`).join('');
+      </div>`;
+    }
+    list.innerHTML = html;
   }
 
   const summaryEl = document.getElementById('member-detail-summary');
