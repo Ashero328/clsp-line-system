@@ -377,7 +377,6 @@
           <div class="nm-input-group rounded-2xl px-4" id="calc-trigger" style="cursor:pointer;">
             <input id="input-expense-amount" type="text" inputmode="none" readonly placeholder="點此輸入金額"
               class="flex-1 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;background:transparent;border:none;outline:none;color:var(--clr-on-surface);cursor:pointer;" />
-            <span class="material-symbols-outlined clr-muted" style="font-size:18px;padding:0 6px 0 4px;pointer-events:none;">calculate</span>
             <select id="input-expense-currency">
               <!-- populated by JS -->
             </select>
@@ -766,14 +765,14 @@
 <script src="js/script.js"></script>
 
 <!-- ── Calculator Keyboard (replaces native keyboard) ──────── -->
-<div id="modal-calc" class="hidden fixed" style="left:0;right:0;bottom:0;z-index:300;background:var(--clr-surface-lowest);border-top:1px solid var(--clr-outline);padding-bottom:env(safe-area-inset-bottom,0);">
+<div id="modal-calc" class="hidden fixed" style="left:0;right:0;bottom:0;z-index:300;">
   <!-- Display bar -->
-  <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 16px 8px;border-bottom:1px solid var(--clr-outline);">
-    <p id="calc-expr-display" class="font-label clr-muted" style="font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:12px;"></p>
-    <p id="calc-result-display" class="font-headline font-bold" style="font-size:26px;color:var(--clr-on-surface);">0</p>
+  <div class="calc-display-bar">
+    <p id="calc-expr-display" class="calc-expr"></p>
+    <p id="calc-result-display" class="calc-result">0</p>
   </div>
   <!-- Keypad grid -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;">
+  <div class="calc-grid">
     <button type="button" data-k="÷"  class="calc-key calc-key-op">÷</button>
     <button type="button" data-k="×"  class="calc-key calc-key-op">×</button>
     <button type="button" data-k="−"  class="calc-key calc-key-op">−</button>
@@ -782,12 +781,12 @@
     <button type="button" data-k="7"  class="calc-key">7</button>
     <button type="button" data-k="8"  class="calc-key">8</button>
     <button type="button" data-k="9"  class="calc-key">9</button>
-    <button type="button" data-k="C"  class="calc-key calc-key-op" style="font-size:16px;">C</button>
+    <button type="button" data-k="C"  class="calc-key calc-key-ac">C</button>
 
     <button type="button" data-k="4"  class="calc-key">4</button>
     <button type="button" data-k="5"  class="calc-key">5</button>
     <button type="button" data-k="6"  class="calc-key">6</button>
-    <button type="button" data-k="⌫"  class="calc-key" style="font-size:18px;">⌫</button>
+    <button type="button" data-k="⌫"  class="calc-key calc-key-del">⌫</button>
 
     <button type="button" data-k="1"  class="calc-key">1</button>
     <button type="button" data-k="2"  class="calc-key">2</button>
@@ -796,8 +795,8 @@
 
     <button type="button" data-k="."  class="calc-key">.</button>
     <button type="button" data-k="0"  class="calc-key">0</button>
-    <button type="button" data-k="00" class="calc-key" style="font-size:16px;">00</button>
-    <button type="button" id="calc-confirm-btn" class="calc-key calc-key-confirm" style="font-size:15px;">完成</button>
+    <button type="button" data-k="00" class="calc-key calc-key-00">00</button>
+    <button type="button" id="calc-confirm-btn" class="calc-key calc-key-confirm">完成</button>
   </div>
 </div>
 

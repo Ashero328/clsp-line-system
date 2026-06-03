@@ -1184,17 +1184,21 @@ function bindAllEvents() {
     const amtInp = document.getElementById('input-expense-amount');
     calcExpr = amtInp.value ? String(amtInp.value) : '';
     calcUpdateDisplay();
-    document.getElementById('modal-calc').classList.remove('hidden');
+    const el = document.getElementById('modal-calc');
+    el.classList.remove('hidden');
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('calc-open')));
   }
 
   function closeCalcModal(confirm) {
-    document.getElementById('modal-calc').classList.add('hidden');
     if (confirm) {
       const result = evalExpr(calcExpr);
       const amtInp = document.getElementById('input-expense-amount');
       amtInp.value = result > 0 ? result : (calcExpr || '');
       amtInp.dispatchEvent(new Event('input', { bubbles: true }));
     }
+    const el = document.getElementById('modal-calc');
+    el.classList.remove('calc-open');
+    el.addEventListener('transitionend', () => el.classList.add('hidden'), { once: true });
   }
 
   document.getElementById('calc-trigger').addEventListener('click', e => {
