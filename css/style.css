@@ -102,7 +102,7 @@ body {
 
 /* ── Scrollbar ───────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; overflow-x: hidden; }
 
 /* ── Typography Scale ────────────────────────────────────── */
 .txt-xs   { font-size: var(--fs-xs);   }
@@ -574,6 +574,33 @@ body {
 .tx-settled { opacity: 0.40; }
 .tx-settled .debt-debtor,
 .tx-settled .debt-creditor { text-decoration: line-through; }
+
+/* ── Member Detail List (ledger-style rows) ──────────────── */
+.member-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--clr-outline-var);
+}
+.member-detail-row:last-child { border-bottom: none; }
+.mdr-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mdr-dot.is-payer {
+  background: rgba(83, 200, 161, 0.16);
+}
+.mdr-dot.is-payer .material-symbols-outlined { color: var(--clr-primary); font-size: 16px; }
+.mdr-dot.is-owed {
+  background: var(--clr-surface-low);
+}
+.mdr-dot.is-owed .material-symbols-outlined { color: var(--clr-on-surface-var); font-size: 16px; }
 
 /* ── Calculator Keyboard ─────────────────────────────────── */
 #modal-calc {

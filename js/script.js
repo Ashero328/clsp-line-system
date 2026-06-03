@@ -676,19 +676,17 @@ function openMemberDetailModal(memberId, pid) {
     list.innerHTML = `<p class="font-label txt-md clr-muted text-center py-8">沒有參與任何帳目</p>`;
   } else {
     list.innerHTML = items.map(item => `
-      <div class="nm-card rounded-2xl p-4">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex-1 min-w-0">
-            <p class="font-headline font-semibold txt-body clr-surface truncate">${esc(item.name)}</p>
-            <p class="font-label txt-sm clr-muted mt-0.5">${fmtDate(item.date)}</p>
-            <p class="font-label txt-sm clr-muted">${item.isPayer ? '你付的' : ('付款人：' + esc(item.payerName))}</p>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">
-              ${item.isPayer ? '+' : ''}${sym}${fmtAmt(cvt(item.share))}
-            </p>
-            <p class="font-label txt-xs clr-muted">共 ${sym}${fmtAmt(cvt(item.total))}</p>
-          </div>
+      <div class="member-detail-row">
+        <div class="mdr-dot ${item.isPayer ? 'is-payer' : 'is-owed'}">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">${item.isPayer ? 'payments' : 'receipt'}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-headline font-semibold txt-body clr-surface truncate">${esc(item.name)}</p>
+          <p class="font-label clr-muted" style="font-size:11px;margin-top:2px;">${fmtDate(item.date)}${item.isPayer ? '' : ' · ' + esc(item.payerName) + ' 付'}</p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">${item.isPayer ? '+' : '−'}${sym}${fmtAmt(cvt(item.share))}</p>
+          <p class="font-label clr-muted" style="font-size:11px;">共 ${sym}${fmtAmt(cvt(item.total))}</p>
         </div>
       </div>`).join('');
   }
@@ -771,42 +769,55 @@ function copyMemberDetailText(memberId, pid) {
   const totalToPay     = settlements.filter(t => t.debtorId === memberId).reduce((s, t) => s + t.amount, 0);
   const netSettle      = totalToReceive - totalToPay;
 
-  let text = `【ClearSplit 帳目明細】\n`;
-  text += `專案：${project.name}\n`;
-  text += `對象：${member.name}\n\n`;
+  const divider = '─────────────────';
+
+  let text = `📋 ${member.name} 的分帳明細\n`;
+  text += `專案「${project.name}」\n`;
+  text += `${divider}\n`;
 
   if (items.length === 0) {
-    text += `（沒有參與任何帳目）\n`;
+    text += `沒有參與任何帳目\n`;
   } else {
-    text += `參與帳目：\n`;
+    text += `帳目（共 ${items.length} 筆）\n\n`;
     items.forEach(item => {
-      const payerStr = item.isPayer ? `${member.name}（你付的）` : item.payerName;
       const d = item.date ? item.date.slice(5).replace('-', '/') : '';
-      text += `・${item.name}（${d}）總額 ${sym}${fmtAmt(cvt(item.total))} ／ 份額 ${sym}${fmtAmt(cvt(item.share))}\n`;
-      text += `  付款人：${payerStr}\n`;
+      if (item.isPayer) {
+        text += `✦ ${item.name}（${d}）\n`;
+        text += `  代付 ${sym}${fmtAmt(cvt(item.total))}，含本人份額 ${sym}${fmtAmt(cvt(item.share))}\n`;
+      } else {
+        text += `  ${item.name}（${d}）\n`;
+        text += `  ${item.payerName} 付款，你的份額 ${sym}${fmtAmt(cvt(item.share))}\n`;
+      }
     });
     text += `\n`;
   }
 
-  text += `💰 你付了：${sym}${fmtAmt(cvt(totalPaid))}\n`;
-  text += `💸 你應付（給他人）：${sym}${fmtAmt(cvt(totalOwed))}\n`;
+  text += `${divider}\n`;
+  text += `代付合計    ${sym}${fmtAmt(cvt(totalPaid))}\n`;
+  text += `應付他人    ${sym}${fmtAmt(cvt(totalOwed))}\n\n`;
 
-  if (netSettle > 0.01)       text += `📊 淨額：+${sym}${fmtAmt(cvt(netSettle))}（應收回）\n`;
-  else if (netSettle < -0.01) text += `📊 淨額：-${sym}${fmtAmt(cvt(Math.abs(netSettle)))}（需轉帳）\n`;
-  else                        text += `📊 淨額：已平衡\n`;
+  if (netSettle > 0.01)
+    text += `淨額  ＋${sym}${fmtAmt(cvt(netSettle))}（應收回）\n`;
+  else if (netSettle < -0.01)
+    text += `淨額  −${sym}${fmtAmt(cvt(Math.abs(netSettle)))}（需轉帳）\n`;
+  else
+    text += `淨額  已平衡\n`;
 
   if (settlements.length > 0) {
-    text += `\n💳 結算建議：\n`;
+    text += `\n結算建議\n`;
     settlements.forEach(t => {
       if (t.debtorName === member.name)
-        text += `  轉帳給 ${t.creditorName} ${sym}${fmtAmt(cvt(t.amount))}\n`;
+        text += `→ 轉帳給 ${t.creditorName}　${sym}${fmtAmt(cvt(t.amount))}\n`;
       else
-        text += `  向 ${t.debtorName} 收 ${sym}${fmtAmt(cvt(t.amount))}\n`;
+        text += `← 向 ${t.debtorName} 收　${sym}${fmtAmt(cvt(t.amount))}\n`;
     });
   }
 
+  text += `${divider}\n`;
+  text += `由 ClearSplit 生成`;
+
   navigator.clipboard.writeText(text)
-    .then(() => showToast('已複製！'))
+    .then(() => showToast('已複製到剪貼簿'))
     .catch(() => showToast('複製失敗，請手動選取'));
 }
 
