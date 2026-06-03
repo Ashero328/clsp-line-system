@@ -60,6 +60,20 @@ function fmtAmt(n) {
   const v = Math.floor(Number(n || 0) * 10) / 10;
   return v.toLocaleString('zh-TW', { maximumFractionDigits: 1 });
 }
+function evalExpr(str) {
+  if (!str) return 0;
+  // Normalise display operators to JS operators
+  const clean = String(str).replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/[^0-9+\-*/().]/g,'');
+  if (!clean) return 0;
+  if (!/[+\-*/]/.test(clean)) return parseFloat(clean) || 0; // pure number
+  if (!/^[0-9+\-*/().]+$/.test(clean)) return 0;             // safety guard
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict";return(' + clean + ')')();
+    if (!isFinite(result) || isNaN(result) || result < 0) return 0;
+    return Math.round(result * 100) / 100;
+  } catch { return 0; }
+}
 function fmtDate(s) {
   if (!s) return '';
   const d = new Date(s.includes('T') ? s : s + 'T00:00:00');
@@ -311,9 +325,25 @@ function renderProjectDetail(pid) {
     }));
 }
 
+function updateCalcPreview() {
+  const inp = document.getElementById('input-expense-amount');
+  const preview = document.getElementById('expense-calc-preview');
+  if (!preview || !inp) return;
+  const val = inp.value.trim();
+  const hasOp = /[+\-×÷*/−]/.test(val);
+  if (!hasOp || !val) { preview.classList.add('hidden'); return; }
+  const result = evalExpr(val);
+  if (result > 0) {
+    preview.textContent = `= ${fmtAmt(result)}`;
+    preview.classList.remove('hidden');
+  } else {
+    preview.classList.add('hidden');
+  }
+}
+
 function updateConversionPreview(settings) {
   const preview  = document.getElementById('expense-conversion-preview');
-  const amount   = parseFloat(document.getElementById('input-expense-amount').value) || 0;
+  const amount   = evalExpr(document.getElementById('input-expense-amount').value) || 0;
   const currency = document.getElementById('input-expense-currency')?.value;
   const base     = settings.baseCurrency || 'TWD';
   if (!preview) return;
@@ -436,7 +466,7 @@ function renderSplitMemberChips(project, selected) {
 }
 
 function updateSplitPreview(project) {
-  const amount    = parseFloat(document.getElementById('input-expense-amount').value) || 0;
+  const amount    = evalExpr(document.getElementById('input-expense-amount').value) || 0;
   const splitType = AppState.currentSplitType;
   const selectedIds = Array.from(document.querySelectorAll('.split-member-chip.payer-selected')).map(c => c.dataset.mid);
 
@@ -1153,6 +1183,47 @@ function bindAllEvents() {
     document.getElementById('btn-remove-cover').classList.add('hidden');
   });
 
+  // Inline calculator toolbar for the expense amount field
+  const amtInp = document.getElementById('input-expense-amount');
+  const calcToolbar = document.getElementById('calc-toolbar');
+  let calcBlurTimer = null;
+
+  amtInp.addEventListener('focus', () => {
+    clearTimeout(calcBlurTimer);
+    calcToolbar.classList.remove('hidden');
+  });
+  amtInp.addEventListener('blur', () => {
+    calcBlurTimer = setTimeout(() => {
+      // Evaluate expression and replace value on blur
+      const val = amtInp.value.trim();
+      if (/[+\-×÷*/−]/.test(val)) {
+        const result = evalExpr(val);
+        if (result > 0) amtInp.value = result;
+      }
+      calcToolbar.classList.add('hidden');
+      document.getElementById('expense-calc-preview').classList.add('hidden');
+    }, 200);
+  });
+  amtInp.addEventListener('input', () => { updateCalcPreview(); });
+
+  document.querySelectorAll('#calc-toolbar [data-op]').forEach(btn => {
+    btn.addEventListener('mousedown', e => e.preventDefault()); // keep focus on input
+    btn.addEventListener('click', () => {
+      clearTimeout(calcBlurTimer);
+      amtInp.value += btn.dataset.op;
+      amtInp.focus();
+      updateCalcPreview();
+    });
+  });
+  document.getElementById('calc-eq-btn').addEventListener('mousedown', e => e.preventDefault());
+  document.getElementById('calc-eq-btn').addEventListener('click', () => {
+    clearTimeout(calcBlurTimer);
+    const result = evalExpr(amtInp.value);
+    if (result > 0) amtInp.value = result;
+    document.getElementById('expense-calc-preview').classList.add('hidden');
+    amtInp.focus();
+  });
+
   // Date sync
   document.getElementById('input-project-date').addEventListener('change', e => {
     AppState.pendingDate = e.target.value;
@@ -1232,7 +1303,7 @@ function bindAllEvents() {
   document.getElementById('btn-expense-form-submit').addEventListener('click', () => {
     const name   = document.getElementById('input-expense-name').value.trim();
     const date   = document.getElementById('input-expense-date').value;
-    const amount = parseFloat(document.getElementById('input-expense-amount').value);
+    const amount = evalExpr(document.getElementById('input-expense-amount').value);
     if (!name)              { alert('請輸入項目名稱'); return; }
     if (!date)              { alert('請選擇日期'); return; }
     if (!amount || amount <= 0) { alert('請輸入有效金額'); return; }
