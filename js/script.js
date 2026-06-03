@@ -1444,8 +1444,8 @@ function bindAllEvents() {
     }
   });
 
-  // Mobile keyboard scroll fix
-  document.querySelectorAll('input').forEach(el => {
+  // Mobile keyboard scroll fix — skip readonly/inputmode-none (they open the calc modal, not the native keyboard)
+  document.querySelectorAll('input:not([readonly]):not([inputmode="none"])').forEach(el => {
     el.addEventListener('focus', () => {
       setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     });

@@ -71,6 +71,13 @@
 /* ── Base ────────────────────────────────────────────────── */
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
+button, a, [role="button"] { touch-action: manipulation; }
+
+/* iOS Safari: prevent auto-zoom on input focus (requires font-size ≥ 16px) */
+input, select, textarea {
+  font-size: max(16px, var(--fs-body)) !important;
+}
+
 html, body { height: 100%; }
 
 #app {
@@ -731,17 +738,17 @@ body {
 }
 
 .nm-toggle-pill {
-  background: var(--surface-low);
+  background: var(--clr-surface-low);
   box-shadow: inset 2px 2px 5px var(--shd-dark), inset -2px -2px 5px var(--shd-light);
 }
 .toggle-pill-btn {
   font-size: calc(var(--base-font-size) * 1.5);
-  color: var(--clr-muted);
+  color: var(--clr-on-surface-var);
   transition: all 0.2s ease;
 }
 .toggle-pill-active {
   background: linear-gradient(0deg, #53C8A1, #b8f0e0);
-  color: var(--clr-surface);
+  color: #0F0F0F;
   font-weight: 600;
   box-shadow: 2px 2px 6px var(--shd-dark), -1px -1px 4px var(--shd-light);
 }
