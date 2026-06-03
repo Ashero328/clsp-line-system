@@ -788,15 +788,18 @@ function copyMemberDetailText(memberId, pid) {
   if (items.length === 0) {
     text += `沒有參與任何帳目\n`;
   } else {
-    text += `帳目（共 ${items.length} 筆）\n\n`;
+    items.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    let lastDate = null;
     items.forEach(item => {
       const d = item.date ? item.date.slice(5).replace('-', '/') : '';
+      if (item.date !== lastDate) {
+        lastDate = item.date;
+        text += `\n${d}\n`;
+      }
       if (item.isPayer) {
-        text += `✦ ${item.name}（${d}）\n`;
-        text += `  代付 ${sym}${fmtAmt(cvt(item.total))}，含本人份額 ${sym}${fmtAmt(cvt(item.share))}\n`;
+        text += `  ✦ ${item.name}  代付 ${sym}${fmtAmt(cvt(item.share))}\n`;
       } else {
-        text += `  ${item.name}（${d}）\n`;
-        text += `  ${item.payerName} 付款，你的份額 ${sym}${fmtAmt(cvt(item.share))}\n`;
+        text += `    ${item.name}  ${sym}${fmtAmt(cvt(item.share))}（${item.payerName} 付）\n`;
       }
     });
     text += `\n`;
