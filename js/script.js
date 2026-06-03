@@ -1183,18 +1183,14 @@ function bindAllEvents() {
     document.getElementById('btn-remove-cover').classList.add('hidden');
   });
 
-  // Inline calculator toolbar for the expense amount field
-  const amtInp = document.getElementById('input-expense-amount');
+  // Inline calculator toolbar — toggled by the calculator icon button
+  const amtInp     = document.getElementById('input-expense-amount');
   const calcToolbar = document.getElementById('calc-toolbar');
-  let calcBlurTimer = null;
 
-  amtInp.addEventListener('focus', () => {
-    clearTimeout(calcBlurTimer);
-    calcToolbar.classList.remove('hidden');
-  });
-  amtInp.addEventListener('blur', () => {
-    calcBlurTimer = setTimeout(() => {
-      // Evaluate expression and replace value on blur
+  document.getElementById('btn-toggle-calc').addEventListener('click', () => {
+    const isOpen = !calcToolbar.classList.contains('hidden');
+    if (isOpen) {
+      // Close: evaluate expression first
       const val = amtInp.value.trim();
       if (/[+\-×÷*/−]/.test(val)) {
         const result = evalExpr(val);
@@ -1202,14 +1198,17 @@ function bindAllEvents() {
       }
       calcToolbar.classList.add('hidden');
       document.getElementById('expense-calc-preview').classList.add('hidden');
-    }, 200);
+    } else {
+      calcToolbar.classList.remove('hidden');
+      amtInp.focus();
+    }
   });
-  amtInp.addEventListener('input', () => { updateCalcPreview(); });
+
+  amtInp.addEventListener('input', updateCalcPreview);
 
   document.querySelectorAll('#calc-toolbar [data-op]').forEach(btn => {
-    btn.addEventListener('mousedown', e => e.preventDefault()); // keep focus on input
+    btn.addEventListener('mousedown', e => e.preventDefault());
     btn.addEventListener('click', () => {
-      clearTimeout(calcBlurTimer);
       amtInp.value += btn.dataset.op;
       amtInp.focus();
       updateCalcPreview();
@@ -1217,7 +1216,6 @@ function bindAllEvents() {
   });
   document.getElementById('calc-eq-btn').addEventListener('mousedown', e => e.preventDefault());
   document.getElementById('calc-eq-btn').addEventListener('click', () => {
-    clearTimeout(calcBlurTimer);
     const result = evalExpr(amtInp.value);
     if (result > 0) amtInp.value = result;
     document.getElementById('expense-calc-preview').classList.add('hidden');
