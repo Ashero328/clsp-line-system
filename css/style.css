@@ -573,31 +573,34 @@ body {
   background: var(--clr-surface);
   box-shadow: var(--nm-raised-sm);
   border: none;
-  border-radius: 16px;
-  padding: 18px 8px;
-  font-size: 22px;
+  border-radius: 12px;
+  padding: 14px 4px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--clr-on-surface);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: box-shadow var(--tr-fast), transform var(--tr-fast);
   font-family: inherit;
+  line-height: 1;
 }
 .calc-key:active {
   box-shadow: var(--nm-sunken-sm);
-  transform: scale(0.94);
+  transform: scale(0.93);
 }
 .calc-key-op {
   color: var(--clr-primary);
+  background: var(--clr-primary-container);
+  box-shadow: none;
 }
 .calc-key-confirm {
   background: var(--clr-primary);
   color: var(--clr-on-primary);
   box-shadow: none;
+  font-size: 15px;
 }
 .calc-key-confirm:active {
   opacity: 0.85;
-  box-shadow: none;
 }
 
 /* ── Cover Remove Button ─────────────────────────────────── */

@@ -1198,20 +1198,24 @@ function bindAllEvents() {
   }
 
   document.getElementById('calc-trigger').addEventListener('click', e => {
-    if (e.target.closest('select')) return; // let currency select work normally
+    if (e.target.closest('select')) return;
     openCalcModal();
   });
-  document.getElementById('calc-backdrop').addEventListener('click', () => closeCalcModal(false));
-  document.getElementById('calc-cancel-btn').addEventListener('click', () => closeCalcModal(false));
   document.getElementById('calc-confirm-btn').addEventListener('click', () => closeCalcModal(true));
 
   document.querySelectorAll('#modal-calc [data-k]').forEach(btn => {
     btn.addEventListener('click', () => {
       const k = btn.dataset.k;
-      if (k === '⌫') {
+      if (k === 'C') {
+        calcExpr = '';
+      } else if (k === '⌫') {
         calcExpr = calcExpr.slice(0, -1);
+      } else if (k === '=') {
+        const r = evalExpr(calcExpr);
+        if (r > 0) calcExpr = String(r);
+      } else if (k === '00') {
+        calcExpr += '00';
       } else if (['+', '−', '×', '÷'].includes(k)) {
-        // Replace trailing operator rather than stack them
         calcExpr = calcExpr.replace(/[+−×÷]$/, '') + k;
       } else {
         calcExpr += k;
