@@ -281,6 +281,7 @@ body {
   background: var(--clr-surface-low);
   box-shadow: var(--nm-sunken-sm);
   display: flex; align-items: center;
+  min-width: 0;
 }
 .nm-input-group input,
 .nm-input-group select {
@@ -294,7 +295,10 @@ body {
   color: var(--clr-primary);
   font-weight: 600;
   font-size: var(--fs-lg);
-  padding: 0 10px 0 4px;
+  padding: 0 6px 0 4px;
+  min-width: 0;
+  flex-shrink: 1;
+  max-width: 76px;
 }
 
 /* ── nm-card ─────────────────────────────────────────────── */

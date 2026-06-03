@@ -61,7 +61,7 @@
   </script>
 
   <!-- Design System -->
-  <link rel="stylesheet" href="css/style.css?v=20260603b" />
+  <link rel="stylesheet" href="css/style.css?v=20260603c" />
 </head>
 <body class="bg-surface antialiased">
 
@@ -184,8 +184,9 @@
       <!-- 封面圖片 -->
       <div>
         <label class="form-label font-label mb-2 block">封面圖片</label>
-        <input id="input-cover-image" type="file" accept="image/*" class="hidden" />
-        <label id="cover-image-zone" for="input-cover-image" class="relative w-full rounded-3xl overflow-hidden cursor-pointer cover-zone" style="display:block;">
+        <input id="input-cover-image" type="file" accept="image/*" tabindex="-1"
+          style="position:absolute;width:0;height:0;opacity:0;overflow:hidden;pointer-events:none;" />
+        <div id="cover-image-zone" class="relative w-full rounded-3xl overflow-hidden cursor-pointer cover-zone">
           <div id="cover-image-placeholder"
             class="absolute inset-0 rounded-3xl flex flex-col items-center justify-center gap-2 nm-sunken">
             <div class="w-12 h-12 rounded-2xl nm-raised-sm flex items-center justify-center">
@@ -198,7 +199,7 @@
             class="btn-remove-img absolute top-3 right-3 hidden w-9 h-9 rounded-xl flex items-center justify-center z-10">
             <span class="material-symbols-outlined clr-white txt-xl" style="font-variation-settings:'FILL' 1;">close</span>
           </button>
-        </label>
+        </div>
       </div>
 
       <!-- 預設幣值 -->
@@ -758,11 +759,11 @@
 <!-- LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <!-- Logic Layer -->
-<script src="js/customer_script.js?v=20260603b"></script>
+<script src="js/customer_script.js?v=20260603c"></script>
 <!-- Firebase Service Layer -->
-<script src="js/firebase_service.js?v=20260603b"></script>
+<script src="js/firebase_service.js?v=20260603c"></script>
 <!-- UI Layer -->
-<script src="js/script.js?v=20260603b"></script>
+<script src="js/script.js?v=20260603c"></script>
 
 <!-- ── Calculator Keyboard (replaces native keyboard) ──────── -->
 <div id="modal-calc" class="hidden fixed" style="left:0;right:0;bottom:0;z-index:300;">

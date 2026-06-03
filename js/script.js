@@ -1147,10 +1147,14 @@ function bindAllEvents() {
     });
   });
 
-  // Cover image upload — zone is a <label for="input-cover-image">.
-  // Do NOT touch inp.value in the click handler — it interferes with the label's
-  // native picker-open timing in LINE WebView and causes the second tap to fail.
-  // Instead, reset value at the END of change handling so the next tap always sees ''.
+  // Cover image upload — zone is a plain div; we trigger inp.click() manually.
+  // Reset inp.value BEFORE inp.click() so: (a) cancel+retry always reopens, (b) same file twice fires change.
+  document.getElementById('cover-image-zone').addEventListener('click', e => {
+    if (e.target.closest('#btn-remove-cover')) return;
+    const inp = document.getElementById('input-cover-image');
+    inp.value = '';
+    inp.click();
+  });
   document.getElementById('input-cover-image').addEventListener('change', async e => {
     const file = e.target.files[0];
     if (!file) return;
