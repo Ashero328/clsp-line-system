@@ -615,6 +615,13 @@ body {
 }
 .mdr-date-header:first-child { padding-top: 2px; }
 
+/* ── Calculator Trigger ──────────────────────────────────── */
+#calc-trigger:active {
+  box-shadow: var(--nm-sunken);
+  transform: scale(0.97);
+  transition: transform var(--tr-fast), box-shadow var(--tr-fast);
+}
+
 /* ── Calculator Keyboard ─────────────────────────────────── */
 #modal-calc {
   background: var(--clr-surface-lowest);
