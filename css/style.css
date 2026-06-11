@@ -322,6 +322,13 @@ body {
 }
 .expense-card:hover { transform: translateY(-4px); }
 
+/* Touch devices (iOS): neutralise card hover so the first tap reaches the
+   inner edit/delete buttons instead of being consumed by sticky :hover. */
+@media (hover: none) {
+  .expense-card:hover,
+  .project-card-wrap:hover { transform: none; }
+}
+
 .expense-name    { font-size: var(--fs-lg);  font-weight: 700; color: var(--clr-on-surface); }
 .expense-meta    { font-size: var(--fs-md);  color: var(--clr-on-surface-var); }
 .expense-amount  { font-size: var(--fs-2xl); font-weight: 800; color: var(--clr-on-surface); }
