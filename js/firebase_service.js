@@ -24,9 +24,15 @@ try {
 // Active Firestore real-time listeners keyed by projectId
 const _fsUnsubs = {};
 
+// In-flight settled toggles (key -> desired state). Snapshots re-apply these
+// so a stale cache snapshot can never clobber a toggle the user just made.
+const _fsPendingSettled = {};
+
 // ── Helpers ──────────────────────────────────────────────────
 
 function fsIsAvailable() { return !!db; }
+
+function fsIsSubscribed(pid) { return !!_fsUnsubs[pid]; }
 
 function fsIsSharedProject(pid) {
   const p = getAllProjects().find(x => x.id === pid);
@@ -82,7 +88,7 @@ async function fsUploadProject(pid) {
   [...getSettledTx(pid)].forEach(key => {
     batch.set(
       db.collection('projects').doc(pid).collection('settled').doc(_safeDocId(key)),
-      { key }
+      { key, settled: true }
     );
   });
 
@@ -128,7 +134,8 @@ async function fsJoinByCode(code) {
 
   // Fetch settled
   const settledSnap = await db.collection('projects').doc(projectId).collection('settled').get();
-  const settledKeys = settledSnap.docs.map(d => d.data().key).filter(Boolean);
+  const settledKeys = settledSnap.docs.filter(d => d.data().settled !== false)
+                                      .map(d => d.data().key).filter(Boolean);
 
   return {
     alreadyJoined: false,
@@ -165,23 +172,34 @@ async function fsSyncProject(p) {
   } catch (err) { console.warn('[Firebase] sync project failed:', err); }
 }
 
-async function fsSyncSettled(pid, key) {
-  if (!db) return;
+async function fsSyncSettled(pid, key, isSettled) {
+  if (!db) return true;
+  _fsPendingSettled[key] = isSettled;
   try {
     const ref = db.collection('projects').doc(pid).collection('settled').doc(_safeDocId(key));
-    const doc = await ref.get();
-    if (doc.exists) {
-      await ref.delete();
-    } else {
-      await ref.set({ key });
-    }
-  } catch (err) { console.warn('[Firebase] sync settled failed:', err); }
+    // Write a tombstone ({settled:false}) instead of deleting the doc, so
+    // "doc missing" unambiguously means "never synced" — that lets the
+    // snapshot handler backfill pre-share toggles instead of wiping them.
+    await ref.set({ key, settled: isSettled });
+    return true;
+  } catch (err) {
+    // On failure local state is kept as-is; the snapshot backfill re-uploads
+    // any locally-settled key whose cloud doc is missing.
+    console.warn('[Firebase] sync settled failed:', err);
+    return false;
+  } finally {
+    // Only clear if no newer toggle of the same key replaced our entry
+    if (_fsPendingSettled[key] === isSettled) delete _fsPendingSettled[key];
+  }
 }
 
 // ── Real-time Listener ────────────────────────────────────────
 
 function fsSubscribeProject(pid, onExpenses, onSettled) {
-  fsUnsubscribeProject(pid);
+  // Already live — keep the existing listeners. Re-subscribing here would
+  // loop forever: the expenses callback re-renders the detail screen, which
+  // calls fsSubscribeProject again, whose fresh initial snapshot re-fires it.
+  if (_fsUnsubs[pid]) return;
 
   const u1 = db.collection('projects').doc(pid).collection('expenses')
     .onSnapshot(snap => {
@@ -192,7 +210,23 @@ function fsSubscribeProject(pid, onExpenses, onSettled) {
 
   const u2 = db.collection('projects').doc(pid).collection('settled')
     .onSnapshot(snap => {
-      const keys = snap.docs.map(d => d.data().key).filter(Boolean);
+      const docKeys = new Set(snap.docs.map(d => d.data().key).filter(Boolean));
+      const keySet  = new Set(snap.docs.filter(d => d.data().settled !== false)
+                                        .map(d => d.data().key).filter(Boolean));
+      // Backfill: a locally-settled key with no cloud doc at all was toggled
+      // before the project was shared (or its write was lost) — upload it
+      // instead of letting this overwrite wipe it.
+      getSettledTx(pid).forEach(key => {
+        if (!docKeys.has(key) && !(key in _fsPendingSettled)) {
+          keySet.add(key);
+          fsSyncSettled(pid, key, true);
+        }
+      });
+      // Re-apply in-flight local toggles so this overwrite can't undo them
+      Object.entries(_fsPendingSettled).forEach(([k, on]) => {
+        if (on) keySet.add(k); else keySet.delete(k);
+      });
+      const keys = [...keySet];
       localStorage.setItem('clsp_settled_' + pid, JSON.stringify(keys));
       onSettled(keys);
     }, err => console.warn('[Firebase] settled listener error:', err));

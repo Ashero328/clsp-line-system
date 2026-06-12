@@ -212,11 +212,14 @@ function renderProjectDetail(pid) {
   const shareIconEl = document.getElementById('share-btn-icon');
   if (shareIconEl) shareIconEl.textContent = project.shareCode ? 'share' : 'cloud_upload';
 
-  // Subscribe to Firestore real-time updates if this is a shared project
-  if (project.shareCode && typeof fsSubscribeProject === 'function' && typeof db !== 'undefined' && db) {
+  // Subscribe to Firestore real-time updates if this is a shared project.
+  // Guard with fsIsSubscribed: the listener itself calls renderProjectDetail,
+  // so re-subscribing here would tear down and recreate listeners in a loop.
+  if (project.shareCode && typeof fsSubscribeProject === 'function' && typeof db !== 'undefined' && db
+      && !(typeof fsIsSubscribed === 'function' && fsIsSubscribed(pid))) {
     fsSubscribeProject(pid,
       () => renderProjectDetail(pid),
-      () => { /* settled changes trigger re-render from settlement screen if active */ }
+      () => { if (document.getElementById('screen-settlement').classList.contains('active')) renderSettlement(pid); }
     );
   }
 
@@ -1411,9 +1414,16 @@ function bindAllEvents() {
     const btn = e.target.closest('.settle-btn');
     if (!btn) return;
     const pid = AppState.currentProjectId;
-    toggleSettledTx(pid, btn.dataset.txKey);
-    if (fsIsSharedProject(pid) && typeof fsSyncSettled === 'function')
-      fsSyncSettled(pid, btn.dataset.txKey);
+    const key = btn.dataset.txKey;
+    toggleSettledTx(pid, key);
+    const nowSettled = getSettledTx(pid).has(key);
+    if (fsIsSharedProject(pid) && typeof fsSyncSettled === 'function') {
+      // On failure keep the local state — _fsPendingSettled shields it from
+      // snapshot overwrites and it gets backfilled after the next reload.
+      fsSyncSettled(pid, key, nowSettled).then(ok => {
+        if (!ok) showToast('雲端同步失敗，結清狀態已先保存在本機');
+      });
+    }
     renderSettlement(pid);
   });
 
