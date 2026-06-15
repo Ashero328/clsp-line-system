@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ClearSplit 分帳系統</title>
+
+  <!-- Fonts: Manrope + Material Symbols -->
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind (layout utilities) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "primary":                  "#53C8A1",
+            "primary-bright":           "#7EDBC0",
+            "primary-dim":              "#1a5c4a",
+            "primary-container":        "#D1F2EB",
+            "on-primary":               "#ffffff",
+            "on-primary-container":     "#1a5c4a",
+            "secondary":                "#1a5c4a",
+            "secondary-container":      "rgba(83,200,161,0.12)",
+            "on-secondary-container":   "#1a5c4a",
+            "background":               "#F9FAFB",
+            "surface":                  "#F9FAFB",
+            "surface-lowest":           "#F1F4F5",
+            "surface-low":              "#EAEEEF",
+            "surface-mid":              "#F3F6F7",
+            "surface-high":             "#FAFCFB",
+            "surface-dim":              "#E2E5E7",
+            "on-surface":               "#2d3335",
+            "on-surface-variant":       "#5a6062",
+            "outline":                  "rgba(45,51,53,0.15)",
+            "outline-variant":          "#adb3b5",
+            "error":                    "#a83836",
+            "error-container":          "rgba(168,56,54,0.10)"
+          },
+          fontFamily: {
+            "headline": ["Manrope", "sans-serif"],
+            "body":     ["Manrope", "sans-serif"],
+            "label":    ["Manrope", "sans-serif"]
+          },
+          borderRadius: {
+            DEFAULT: "0.375rem",
+            "lg":  "0.625rem",
+            "xl":  "0.875rem",
+            "2xl": "1rem",
+            "3xl": "1.5rem",
+            "4xl": "2rem",
+            "full":"9999px"
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="css/style.css?v=20260615a" />
+</head>
+<body class="bg-surface antialiased">
+
+<div id="app" class="max-w-[430px] mx-auto relative overflow-hidden bg-surface">
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 1: HOME — PROJECT LIST
+  ══════════════════════════════════════════ -->
+  <div id="screen-home" class="screen active absolute inset-0 flex flex-col">
+
+    <!-- Header -->
+    <header class="app-header flex items-center justify-between px-6 py-4 flex-shrink-0 z-10">
+      <h1 class="app-header-title font-headline">ClearSplit</h1>
+      <div class="w-10 h-10 rounded-full nm-raised-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
+        <img id="liff-user-avatar" alt="你" class="w-full h-full object-cover hidden" />
+        <span id="liff-avatar-fallback" class="material-symbols-outlined clr-muted" style="font-size:22px;">account_circle</span>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto no-scrollbar px-6 pb-8">
+
+      <!-- Hero CTA -->
+      <section class="pt-6 pb-5 flex flex-col gap-3">
+        <button id="btn-new-project"
+          class="nm-cta-hero w-full py-5 px-6 rounded-4xl flex items-center justify-between group">
+          <span class="cta-label font-headline">建立新專案</span>
+          <div class="cta-icon-circle w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined txt-2xl clr-white" style="font-variation-settings:'FILL' 1;">add</span>
+          </div>
+        </button>
+        <button id="btn-join-by-code"
+          class="nm-btn-secondary w-full py-4 px-6 rounded-4xl flex items-center justify-between">
+          <span class="font-headline font-semibold txt-lg clr-primary">用分享碼加入專案</span>
+          <span class="material-symbols-outlined txt-2xl clr-primary" style="font-variation-settings:'FILL' 1;">group_add</span>
+        </button>
+      </section>
+
+      <!-- Section Header -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="section-label font-label">我的專案列表</h2>
+        <span id="home-project-count" class="chip-inactive rounded-full px-3 py-1 font-label font-semibold">0 個</span>
+      </div>
+
+      <!-- Project List -->
+      <div id="home-project-list" class="flex flex-col gap-6"></div>
+
+      <!-- Empty State -->
+      <div id="home-empty-state" class="flex flex-col items-center gap-4 py-12">
+        <div class="empty-icon-wrap">
+          <span class="material-symbols-outlined txt-3xl clr-muted" style="opacity:0.25;">receipt_long</span>
+        </div>
+        <div class="text-center">
+          <p class="empty-title font-headline">還沒有分帳專案</p>
+          <p class="empty-hint font-body mt-1">點擊上方「建立新專案」開始</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 2: CREATE / EDIT PROJECT
+  ══════════════════════════════════════════ -->
+  <div id="screen-create-project" class="screen absolute inset-0 flex flex-col">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+      <button id="btn-create-project-back"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
+      </button>
+      <h2 id="create-project-title" class="app-header-page-title font-headline">新增專案</h2>
+    </header>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-32 flex flex-col gap-7">
+
+      <!-- 日期 -->
+      <div>
+        <label class="form-label font-label mb-2 flex items-center gap-1">
+          日期 <span class="required-star">*</span>
+        </label>
+        <input id="input-project-date" type="date"
+          class="nm-input w-full rounded-2xl px-5 py-4" />
+      </div>
+
+      <!-- 專案名稱 -->
+      <div>
+        <label class="form-label font-label mb-2 flex items-center gap-1">
+          專案名稱 <span class="required-star">*</span>
+        </label>
+        <input id="input-project-name" type="text" placeholder="例如：墾丁旅遊、尾牙聚餐"
+          class="nm-input w-full rounded-2xl px-5 py-4" />
+      </div>
+
+      <!-- 成員 -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <label class="form-label font-label flex items-center gap-1">
+            成員 <span class="required-star">*</span>
+          </label>
+          <span id="member-count-badge" class="chip-inactive rounded-full px-3 py-1 font-label font-semibold">0 人</span>
+        </div>
+        <div class="flex gap-2">
+          <div class="flex-1 nm-input-group rounded-2xl">
+            <input id="input-new-member-name" type="text" placeholder="輸入成員名稱"
+              class="flex-1 px-4 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;" />
+            <select id="select-member-role">
+              <option value="editor">編輯者</option>
+              <option value="viewer">檢視者</option>
+            </select>
+          </div>
+          <button id="btn-add-member"
+            class="nm-btn-primary w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined txt-2xl" style="font-variation-settings:'FILL' 1;">person_add</span>
+          </button>
+        </div>
+        <div id="member-chip-list" class="flex flex-wrap gap-2 mt-4 min-h-[40px]"></div>
+      </div>
+
+      <!-- 封面圖片 -->
+      <div>
+        <label class="form-label font-label mb-2 block">封面圖片</label>
+        <input id="input-cover-image" type="file" accept="image/*" tabindex="-1"
+          style="position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0;" />
+        <div id="cover-image-zone" class="relative w-full rounded-3xl overflow-hidden cursor-pointer cover-zone">
+          <div id="cover-image-placeholder"
+            class="absolute inset-0 rounded-3xl flex flex-col items-center justify-center gap-2 nm-sunken">
+            <div class="w-12 h-12 rounded-2xl nm-raised-sm flex items-center justify-center">
+              <span class="material-symbols-outlined clr-muted">add_photo_alternate</span>
+            </div>
+            <p class="font-label txt-base clr-muted">點擊上傳封面圖片（最大 10MB）</p>
+          </div>
+          <img id="cover-image-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden" />
+          <button id="btn-remove-cover" type="button"
+            class="btn-remove-img absolute top-3 right-3 hidden w-9 h-9 rounded-xl flex items-center justify-center z-10">
+            <span class="material-symbols-outlined clr-white txt-xl" style="font-variation-settings:'FILL' 1;">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 預設幣值 -->
+      <div>
+        <label class="form-label font-label mb-2 block">預設幣值</label>
+        <select id="select-project-default-currency" class="nm-input w-full rounded-2xl px-5 py-4">
+          <!-- populated by JS -->
+        </select>
+      </div>
+
+      <!-- 結算方式 -->
+      <div>
+        <label class="form-label font-label mb-4 block">結算方式</label>
+        <div class="flex flex-col gap-3">
+          <div id="algo-card-itemized" data-algo="itemized"
+            class="nm-card rounded-3xl p-5 cursor-pointer transition-all border-2 border-transparent algo-selected">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl nm-raised-sm flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined algo-icon">receipt_long</span>
+              </div>
+              <div>
+                <p class="font-headline font-bold txt-body clr-surface">逐筆抵銷法</p>
+                <p class="font-body txt-base clr-muted mt-0.5">保留每筆支出細節，顯示債務來源</p>
+              </div>
+            </div>
+          </div>
+          <div id="algo-card-roundtable" data-algo="roundtable"
+            class="nm-card rounded-3xl p-5 cursor-pointer transition-all border-2 border-transparent">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl nm-raised-sm flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined algo-icon">table_restaurant</span>
+              </div>
+              <div>
+                <p class="font-headline font-bold txt-body clr-surface">圓桌法（淨額法）</p>
+                <p class="font-body txt-base clr-muted mt-0.5">計算最終淨額，最少筆數轉帳結清</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
+      <button id="btn-create-project-submit"
+        class="nm-btn-primary w-full py-4 rounded-2xl font-headline">
+        建立專案
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 3: PROJECT DETAIL
+  ══════════════════════════════════════════ -->
+  <div id="screen-project-detail" class="screen absolute inset-0 flex flex-col">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+      <button id="btn-project-detail-back"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
+      </button>
+      <span id="detail-project-name" class="app-header-page-title font-headline flex-1 truncate"></span>
+      <button id="btn-share-project"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span id="share-btn-icon" class="material-symbols-outlined txt-xl clr-primary" style="font-variation-settings:'FILL' 1;">cloud_upload</span>
+      </button>
+      <button id="btn-go-settlement"
+        class="nm-btn-primary rounded-2xl px-4 py-2 flex items-center gap-1.5 flex-shrink-0">
+        <span class="material-symbols-outlined txt-xl">calculate</span>
+        <span class="font-label font-semibold txt-md">結算</span>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar pb-28">
+
+      <!-- Summary Banner -->
+      <div class="mx-6 mt-5 banner-primary rounded-3xl p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="banner-label font-label">總支出</p>
+            <div class="flex items-baseline gap-1 mt-1">
+              <span id="detail-currency-unit" class="banner-unit font-headline">NT$</span>
+              <span id="detail-total-amount" class="banner-amount font-headline">0</span>
+            </div>
+            <p id="detail-total-base" class="banner-label font-label mt-0.5 hidden"></p>
+          </div>
+          <div class="text-right">
+            <p class="banner-label font-label">筆數</p>
+            <p id="detail-expense-count" class="banner-count font-headline">0</p>
+            <p class="banner-label font-label mt-3">人均</p>
+            <p id="detail-avg-amount" class="banner-avg font-headline">NT$0</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="detail-algo-badge" class="mx-6 mt-3"></div>
+
+      <div class="px-6 mt-5">
+        <div id="expense-list" class="flex flex-col gap-4"></div>
+        <div id="expense-empty-state" class="flex flex-col items-center gap-4 py-16">
+          <div class="empty-icon-wrap">
+            <span class="material-symbols-outlined txt-3xl clr-muted" style="opacity:0.25;">receipt_long</span>
+          </div>
+          <div class="text-center">
+            <p class="empty-title font-headline">還沒有支出紀錄</p>
+            <p class="empty-hint font-body mt-1">點擊 + 新增第一筆帳目</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAB -->
+    <button id="btn-new-expense"
+      class="nm-fab absolute bottom-24 right-6 w-14 h-14 rounded-3xl flex items-center justify-center z-20">
+      <span class="material-symbols-outlined txt-3xl" style="font-variation-settings:'FILL' 1;">add</span>
+    </button>
+
+    <!-- Bottom Nav -->
+    <nav class="nm-nav absolute bottom-0 left-0 right-0 flex items-center justify-around px-4 pb-6 pt-3 rounded-t-3xl z-10">
+      <button class="nav-item" id="detail-nav-home">
+        <span class="material-symbols-outlined">home</span>
+        <span class="nav-label font-label">首頁</span>
+      </button>
+      <button class="nav-item active">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+        <span class="nav-label font-label">帳目</span>
+      </button>
+      <button class="nav-item" id="detail-nav-settlement">
+        <span class="material-symbols-outlined">calculate</span>
+        <span class="nav-label font-label">結算</span>
+      </button>
+      <button class="nav-item" id="detail-nav-settings">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="nav-label font-label">設定</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 4: EXPENSE FORM
+  ══════════════════════════════════════════ -->
+  <div id="screen-expense-form" class="screen absolute inset-0 flex flex-col">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+      <button id="btn-expense-form-back"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
+      </button>
+      <span id="expense-form-title" class="app-header-page-title font-headline">新增帳目</span>
+    </header>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-32 flex flex-col gap-6">
+
+      <!-- 項目名稱 + Icon -->
+      <div>
+        <label class="form-label font-label mb-2 block">項目名稱</label>
+        <div class="flex gap-2 items-center">
+          <button id="btn-icon-picker" type="button"
+            class="nm-btn-secondary w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center active:scale-90"
+            style="transition:transform 0.1s ease;">
+            <span id="icon-picker-current" class="material-symbols-outlined txt-2xl clr-primary" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+          </button>
+          <input id="input-expense-name" type="text" placeholder="例如：晚餐、計程車"
+            class="nm-input flex-1 rounded-2xl px-4 py-4" />
+        </div>
+      </div>
+
+      <!-- 日期 + 金額 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label font-label mb-2 block">日期</label>
+          <input id="input-expense-date" type="date"
+            class="nm-input w-full rounded-2xl px-4 py-4" />
+        </div>
+        <div>
+          <label class="form-label font-label mb-2 block">金額</label>
+          <div class="nm-input-group rounded-2xl px-4" id="calc-trigger" style="cursor:pointer;">
+            <input id="input-expense-amount" type="text" inputmode="none" readonly placeholder="點此輸入金額"
+              class="flex-1 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;background:transparent;border:none;outline:none;color:var(--clr-on-surface);cursor:pointer;" />
+            <select id="input-expense-currency">
+              <!-- populated by JS -->
+            </select>
+          </div>
+          <p id="expense-conversion-preview" class="hidden txt-sm clr-muted font-label mt-1.5 px-2"></p>
+        </div>
+      </div>
+
+      <!-- 代墊人 -->
+      <div>
+        <label class="form-label font-label mb-3 block">代墊人</label>
+        <div id="payer-selector" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- 分攤方式 -->
+      <div>
+        <label class="form-label font-label mb-3 block">分攤方式</label>
+        <div class="nm-sunken rounded-2xl p-1.5 flex gap-1 mb-4">
+          <button id="split-tab-all" data-split="all"
+            class="split-tab-active flex-1 rounded-xl py-2.5 font-label font-semibold transition-all">
+            全部均分
+          </button>
+          <button id="split-tab-except" data-split="except"
+            class="split-tab-inactive flex-1 rounded-xl py-2.5 font-label transition-all">
+            除了…
+          </button>
+          <button id="split-tab-include" data-split="include"
+            class="split-tab-inactive flex-1 rounded-xl py-2.5 font-label transition-all">
+            指定…
+          </button>
+        </div>
+        <div id="split-detail-panel" class="hidden flex-col gap-3">
+          <p id="split-panel-label" class="font-label txt-md clr-muted"></p>
+          <div id="split-member-chips" class="flex flex-wrap gap-2"></div>
+          <div class="nm-raised-sm rounded-2xl px-4 py-3">
+            <p id="split-preview" class="font-body font-semibold txt-md clr-primary"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
+      <button id="btn-expense-form-submit"
+        class="nm-btn-primary w-full py-4 rounded-2xl font-headline">
+        儲存帳目
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 5: SETTLEMENT
+  ══════════════════════════════════════════ -->
+  <div id="screen-settlement" class="screen absolute inset-0 flex flex-col">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+      <button id="btn-settlement-back"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
+      </button>
+      <h2 class="app-header-page-title font-headline flex-1">結算明細</h2>
+      <button id="btn-toggle-algo"
+        class="nm-btn-primary rounded-2xl px-3 py-2 flex items-center gap-1.5 flex-shrink-0">
+        <span class="material-symbols-outlined txt-xl">swap_horiz</span>
+        <span id="btn-toggle-algo-label" class="font-label font-semibold txt-md">切換逐筆</span>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar pb-28">
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-3 gap-3 px-6 mt-5">
+        <div class="stat-card">
+          <span class="material-symbols-outlined txt-2xl clr-primary">payments</span>
+          <p class="stat-label font-label">總支出</p>
+          <p id="stat-total" class="stat-value font-headline">NT$0</p>
+        </div>
+        <div class="stat-card">
+          <span class="material-symbols-outlined txt-2xl clr-primary">group</span>
+          <p class="stat-label font-label">人數</p>
+          <p id="stat-members" class="stat-value font-headline">0 人</p>
+        </div>
+        <div class="stat-card">
+          <span class="material-symbols-outlined txt-2xl clr-primary">receipt</span>
+          <p class="stat-label font-label">筆數</p>
+          <p id="stat-expenses" class="stat-value font-headline">0 筆</p>
+        </div>
+      </div>
+
+      <!-- Algo Indicator -->
+      <div class="mx-6 mt-4 nm-raised-sm rounded-2xl p-4 flex items-center gap-3">
+        <span id="algo-icon-display" class="material-symbols-outlined txt-3xl clr-primary">receipt_long</span>
+        <div>
+          <p id="algo-name-display" class="font-headline font-bold txt-body clr-surface">逐筆抵銷法</p>
+          <p id="algo-desc-display" class="font-body txt-base clr-muted mt-0.5">保留每筆支出的債務來源細節</p>
+        </div>
+      </div>
+
+      <!-- Currency Toggle -->
+      <div id="settlement-currency-toggle" class="px-6 mt-4 hidden">
+        <div class="nm-toggle-pill flex rounded-2xl p-1">
+          <button id="toggle-base-curr" class="toggle-pill-btn flex-1 py-2 rounded-xl font-label">NT$（TWD）</button>
+          <button id="toggle-input-curr" class="toggle-pill-btn flex-1 py-2 rounded-xl font-label">¥（JPY）</button>
+        </div>
+      </div>
+
+      <!-- Member Detail Chips -->
+      <div class="px-6 mt-5">
+        <p class="section-label font-label mb-3">成員明細</p>
+        <div id="settlement-member-chips" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Balance List Header -->
+      <div class="px-6 mt-8 flex items-center justify-between mb-4">
+        <p class="section-label font-label">結算清單</p>
+        <button id="btn-export-excel"
+          class="nm-btn-primary rounded-xl px-3 py-2 flex items-center gap-1.5">
+          <span class="material-symbols-outlined txt-xl">download</span>
+          <span class="font-label font-semibold txt-sm">匯出 Excel</span>
+        </button>
+      </div>
+
+      <!-- Balance List -->
+      <div id="settlement-balance-list" class="px-6 flex flex-col gap-4"></div>
+
+      <!-- All Settled -->
+      <div id="settlement-all-settled" class="hidden flex-col items-center gap-4 py-20 px-6">
+        <div class="empty-icon-wrap w-20 h-20 rounded-3xl">
+          <span class="material-symbols-outlined txt-4xl clr-primary" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        </div>
+        <div class="text-center">
+          <p class="font-headline font-bold txt-2xl clr-primary">已完全結清！</p>
+          <p class="font-body txt-md clr-muted mt-1">所有帳目均已結算完畢</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="nm-nav absolute bottom-0 left-0 right-0 flex items-center justify-around px-4 pb-6 pt-3 rounded-t-3xl z-10">
+      <button class="nav-item" id="settlement-nav-home">
+        <span class="material-symbols-outlined">home</span>
+        <span class="nav-label font-label">首頁</span>
+      </button>
+      <button class="nav-item" id="settlement-nav-items">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="nav-label font-label">帳目</span>
+      </button>
+      <button class="nav-item active">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">calculate</span>
+        <span class="nav-label font-label">結算</span>
+      </button>
+      <button class="nav-item" id="settlement-nav-settings">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="nav-label font-label">設定</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 6: PROJECT SETTINGS
+  ══════════════════════════════════════════ -->
+  <div id="screen-settings" class="screen absolute inset-0 flex flex-col">
+
+    <header class="app-header flex items-center gap-3 px-6 py-4 flex-shrink-0 z-10">
+      <button id="btn-settings-back"
+        class="nm-btn-secondary w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined txt-2xl clr-surface">arrow_back</span>
+      </button>
+      <h2 class="app-header-page-title font-headline flex-1">專案設定</h2>
+      <button id="btn-fetch-rates" class="settings-rate-refresh-btn">
+        <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' 1;">sync</span>
+        <span class="font-label txt-sm">更新匯率</span>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-32 flex flex-col gap-7">
+
+      <!-- 貨幣設定 -->
+      <div>
+        <h3 class="section-label font-label mb-4">貨幣設定</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label font-label mb-2 block">慣用記帳貨幣</label>
+            <select id="settings-base-currency" class="nm-input w-full rounded-2xl px-5 py-4">
+              <!-- populated by JS -->
+            </select>
+          </div>
+          <div>
+            <label class="form-label font-label mb-2 block">新增帳目預設貨幣</label>
+            <select id="settings-default-input-currency" class="nm-input w-full rounded-2xl px-5 py-4">
+              <!-- populated by JS -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 匯率設定 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="section-label font-label">匯率設定</h3>
+          <span id="settings-rates-updated" class="txt-xs clr-muted font-label"></span>
+        </div>
+        <p class="txt-sm clr-muted font-label mb-4">1 外幣 = ? 慣用貨幣（可手動修改）</p>
+        <div id="settings-rates-list" class="flex flex-col gap-2">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
+      <button id="btn-settings-save" class="nm-btn-primary w-full py-4 rounded-2xl font-headline">
+        儲存設定
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Modal: 編輯成員 ── -->
+  <div id="modal-edit-project" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-10 flex flex-col gap-5 modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="flex items-center justify-between">
+        <h3 class="font-headline font-bold txt-xl clr-surface">編輯成員</h3>
+        <button id="btn-edit-modal-close"
+          class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+      <div id="edit-modal-members" class="flex flex-wrap gap-2"></div>
+      <div class="nm-input-group rounded-2xl">
+        <input id="input-edit-member-name" type="text" placeholder="新增成員名稱"
+          class="flex-1 px-4 font-body" style="padding-top:14px;padding-bottom:14px;min-width:0;" />
+        <select id="select-edit-member-role">
+          <option value="editor">編輯者</option>
+          <option value="viewer">檢視者</option>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <button id="btn-edit-add-member"
+          class="nm-btn-secondary flex-1 py-3 rounded-2xl font-label font-semibold txt-body clr-surface">
+          新增成員
+        </button>
+        <button id="btn-edit-modal-save"
+          class="nm-btn-primary flex-1 py-3 rounded-2xl font-headline">
+          儲存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: 個人帳目明細 ── -->
+  <div id="modal-member-detail" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-10 modal-sheet flex flex-col" style="max-height:min(85vh,85dvh);">
+      <div class="modal-handle mb-4"></div>
+      <div class="flex items-center justify-between mb-3 flex-shrink-0">
+        <h3 id="member-detail-title" class="font-headline font-bold txt-xl clr-surface"></h3>
+        <button id="btn-member-detail-close"
+          class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+      <div id="member-detail-list" class="flex-1 overflow-y-auto flex flex-col gap-3 min-h-0 pr-1"></div>
+      <div id="member-detail-summary" class="nm-card rounded-2xl p-4 flex flex-col gap-1 flex-shrink-0 mt-3"></div>
+      <button id="btn-member-detail-copy"
+        class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex-shrink-0 mt-3 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined txt-xl">content_copy</span>
+        複製文字
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Share Project Modal ── -->
+  <div id="modal-share-project" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-8 modal-sheet flex flex-col" style="max-height:min(80vh,80dvh);">
+      <div class="modal-handle mb-4"></div>
+      <div class="flex items-center justify-between mb-5 flex-shrink-0">
+        <h3 class="font-headline font-bold txt-xl clr-surface">分享此專案</h3>
+        <button id="btn-share-modal-close" class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+
+      <!-- uploading state -->
+      <div id="share-state-uploading" class="hidden flex-col items-center gap-3 py-8">
+        <span class="material-symbols-outlined txt-4xl clr-primary spin-icon">progress_activity</span>
+        <p class="font-label clr-muted">上傳中，請稍候...</p>
+      </div>
+
+      <!-- ready state -->
+      <div id="share-state-ready" class="hidden flex-col gap-4">
+        <p class="font-label clr-muted txt-md">將連結傳給朋友，他們點選後即可加入此帳目</p>
+        <div class="nm-card rounded-2xl p-4 flex flex-col items-center gap-1">
+          <p class="font-label txt-sm clr-muted">分享碼</p>
+          <p id="share-code-display" class="font-headline font-bold clr-primary share-code-big"></p>
+        </div>
+        <div class="nm-card rounded-2xl px-4 py-3">
+          <p id="share-url-display" class="font-label txt-sm clr-muted break-all leading-relaxed"></p>
+        </div>
+        <button id="btn-copy-share-link" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl">content_copy</span>複製連結
+        </button>
+        <button id="btn-send-to-line" class="nm-btn-secondary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' 1;">send</span>傳送到 LINE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Join Project Modal ── -->
+  <div id="modal-join-project" class="hidden absolute inset-0 z-50 flex items-end modal-overlay">
+    <div class="w-full rounded-t-3xl px-6 pt-5 pb-8 modal-sheet flex flex-col" style="max-height:min(80vh,80dvh);">
+      <div class="modal-handle mb-4"></div>
+      <div class="flex items-center justify-between mb-5 flex-shrink-0">
+        <h3 class="font-headline font-bold txt-xl clr-surface">加入專案</h3>
+        <button id="btn-join-modal-close" class="nm-btn-secondary w-9 h-9 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined txt-xl clr-muted">close</span>
+        </button>
+      </div>
+
+      <!-- enter code state -->
+      <div id="join-state-enter" class="flex flex-col gap-4">
+        <p class="font-label clr-muted txt-md">輸入朋友給你的 6 位分享碼</p>
+        <input id="input-join-code" type="text" maxlength="6"
+          placeholder="例如：ABC123"
+          class="nm-input w-full rounded-2xl px-5 py-4 text-center font-headline font-bold join-code-input"
+          autocomplete="off" autocapitalize="characters" />
+        <button id="btn-join-lookup" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl">search</span>查詢
+        </button>
+      </div>
+
+      <!-- loading state -->
+      <div id="join-state-loading" class="hidden flex-col items-center gap-3 py-8">
+        <span class="material-symbols-outlined txt-4xl clr-primary spin-icon">progress_activity</span>
+        <p class="font-label clr-muted">載入中...</p>
+      </div>
+
+      <!-- confirm state -->
+      <div id="join-state-confirm" class="hidden flex-col gap-4">
+        <div class="nm-card rounded-2xl p-5 flex items-center gap-4">
+          <span class="material-symbols-outlined txt-3xl clr-primary" style="font-variation-settings:'FILL' 1;">folder_shared</span>
+          <div>
+            <p id="join-confirm-name" class="font-headline font-bold txt-lg clr-surface"></p>
+            <p id="join-confirm-meta" class="font-label txt-sm clr-muted mt-0.5"></p>
+          </div>
+        </div>
+        <p class="font-label clr-muted txt-md">確定加入此專案？加入後可與對方即時同步帳目。</p>
+        <button id="btn-join-confirm" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl" style="font-variation-settings:'FILL' 1;">group_add</span>加入
+        </button>
+        <button id="btn-join-back" class="nm-btn-secondary w-full py-3 rounded-2xl font-headline flex items-center justify-center">
+          返回
+        </button>
+      </div>
+
+      <!-- already joined state -->
+      <div id="join-state-already" class="hidden flex-col items-center gap-4 py-4">
+        <span class="material-symbols-outlined txt-4xl clr-primary" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        <p class="font-headline font-bold txt-lg clr-surface">你已加入此專案</p>
+        <p id="join-already-name" class="font-label clr-muted txt-md"></p>
+        <button id="btn-join-go-project" class="nm-btn-primary w-full py-3 rounded-2xl font-headline flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined txt-xl">arrow_forward</span>前往專案
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Icon Picker Popup ── -->
+   
+  <div id="icon-picker-popup" class="hidden absolute z-50 rounded-3xl p-4 icon-picker-popup">
+    <div class="grid grid-cols-5 gap-2">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Firebase Compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<!-- LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<!-- Logic Layer -->
+<script src="js/customer_script.js?v=20260615a"></script>
+<!-- Firebase Service Layer -->
+<script src="js/firebase_service.js?v=20260615a"></script>
+<!-- UI Layer -->
+<script src="js/script.js?v=20260615a"></script>
+
+<!-- ── Calculator Keyboard (replaces native keyboard) ──────── -->
+<div id="modal-calc" class="hidden fixed" style="left:0;right:0;bottom:0;z-index:300;">
+  <!-- Display bar -->
+  <div class="calc-display-bar">
+    <p id="calc-expr-display" class="calc-expr"></p>
+    <p id="calc-result-display" class="calc-result">0</p>
+  </div>
+  <!-- Keypad grid -->
+  <div class="calc-grid">
+    <button type="button" data-k="÷"  class="calc-key calc-key-op">÷</button>
+    <button type="button" data-k="×"  class="calc-key calc-key-op">×</button>
+    <button type="button" data-k="−"  class="calc-key calc-key-op">−</button>
+    <button type="button" data-k="+"  class="calc-key calc-key-op">+</button>
+
+    <button type="button" data-k="7"  class="calc-key">7</button>
+    <button type="button" data-k="8"  class="calc-key">8</button>
+    <button type="button" data-k="9"  class="calc-key">9</button>
+    <button type="button" data-k="C"  class="calc-key calc-key-ac">C</button>
+
+    <button type="button" data-k="4"  class="calc-key">4</button>
+    <button type="button" data-k="5"  class="calc-key">5</button>
+    <button type="button" data-k="6"  class="calc-key">6</button>
+    <button type="button" data-k="⌫"  class="calc-key calc-key-del">⌫</button>
+
+    <button type="button" data-k="1"  class="calc-key">1</button>
+    <button type="button" data-k="2"  class="calc-key">2</button>
+    <button type="button" data-k="3"  class="calc-key">3</button>
+    <button type="button" data-k="="  class="calc-key calc-key-op">=</button>
+
+    <button type="button" data-k="."  class="calc-key">.</button>
+    <button type="button" data-k="0"  class="calc-key">0</button>
+    <button type="button" data-k="00" class="calc-key calc-key-00">00</button>
+    <button type="button" id="calc-confirm-btn" class="calc-key calc-key-confirm">完成</button>
+  </div>
+</div>
+
+</body>
+</html>
