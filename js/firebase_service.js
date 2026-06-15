@@ -14,11 +14,9 @@ const firebaseConfig = {
 };
 
 let db = null;
-let storage = null;
 try {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
-  storage = firebase.storage();
 } catch (e) {
   console.warn('[Firebase] init failed:', e);
 }
@@ -53,22 +51,6 @@ function _safeDocId(key) {
   return btoa(unescape(encodeURIComponent(key))).replace(/[+/=]/g, '_');
 }
 
-// ── Cover Image Upload to Firebase Storage ────────────────────
-
-async function _uploadCoverImage(pid, base64DataUrl) {
-  if (!storage || !base64DataUrl) return null;
-  try {
-    const res = await fetch(base64DataUrl);
-    const blob = await res.blob();
-    const ref = storage.ref(`covers/${pid}`);
-    await ref.put(blob, { contentType: blob.type || 'image/jpeg' });
-    return await ref.getDownloadURL();
-  } catch (e) {
-    console.warn('[Firebase Storage] cover upload failed:', e);
-    return null;
-  }
-}
-
 // ── Upload Project to Firestore ───────────────────────────────
 
 async function fsUploadProject(pid) {
@@ -85,14 +67,7 @@ async function fsUploadProject(pid) {
   }
   if (!shareCode) throw new Error('無法產生分享碼，請重試');
 
-  // Upload cover image to Storage; replace base64 with URL for Firestore
   const projectData = { ...project, shareCode };
-  if (project.coverImage && project.coverImage.startsWith('data:')) {
-    const url = await _uploadCoverImage(pid, project.coverImage);
-    projectData.coverImage = url || null;
-  } else if (!project.coverImage) {
-    projectData.coverImage = null;
-  }
 
   const batch = db.batch();
 
@@ -189,13 +164,7 @@ async function fsDeleteExpenseCloud(pid, eid) {
 async function fsSyncProject(p) {
   if (!db) return;
   try {
-    const data = { ...p };
-    if (data.coverImage && data.coverImage.startsWith('data:')) {
-      const url = await _uploadCoverImage(p.id, data.coverImage);
-      data.coverImage = url || null;
-    }
-    // If coverImage is already an https:// URL or null, keep as-is
-    await db.collection('projects').doc(p.id).set(data, { merge: true });
+    await db.collection('projects').doc(p.id).set({ ...p }, { merge: true });
   } catch (err) { console.warn('[Firebase] sync project failed:', err); }
 }
 

@@ -1181,7 +1181,7 @@ function bindAllEvents() {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); e.target.value = ''; return; }
     try {
-      const compressed = await compressImage(file, 1200, 0.82);
+      const compressed = await compressImage(file, 400, 0.6);
       AppState.pendingCoverImage = compressed;
       const preview = document.getElementById('cover-image-preview');
       preview.src = compressed;
@@ -1291,6 +1291,7 @@ function bindAllEvents() {
         p.algorithm   = AppState.pendingAlgorithm;
         p.coverImage  = AppState.pendingCoverImage || null;
         saveProject(p);
+        if (fsIsSharedProject(p.id) && typeof fsSyncProject === 'function') fsSyncProject(p);
         const s = getProjectSettings(AppState.editingProjectId);
         saveProjectSettings(AppState.editingProjectId, { ...s, defaultInputCurrency: defaultCurr });
       }
@@ -1589,11 +1590,6 @@ function openShareModal(pid) {
   if (!project) return;
 
   if (project.shareCode) {
-    // Already shared — if local coverImage is base64 (not yet in cloud), push it now
-    if (project.coverImage && project.coverImage.startsWith('data:') &&
-        typeof fsSyncProject === 'function') {
-      fsSyncProject(project);
-    }
     _showShareReady(project.shareCode);
     return;
   }
