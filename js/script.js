@@ -968,7 +968,6 @@ function resetCreateForm() {
   document.getElementById('input-project-date').value  = today;
   document.getElementById('input-project-name').value  = '';
   document.getElementById('input-new-member-name').value = '';
-  document.getElementById('input-cover-image').value   = '';
   AppState.pendingMembers    = [];
   AppState.pendingAlgorithm  = 'itemized';
   AppState.pendingCoverImage = null;
@@ -1168,36 +1167,38 @@ function bindAllEvents() {
     });
   });
 
-  // Cover image upload — zone is a plain div; we trigger inp.click() manually.
-  // Reset inp.value BEFORE inp.click() so: (a) cancel+retry always reopens, (b) same file twice fires change.
+  // Cover image upload — create a fresh <input> on every click so LINE WebView
+  // never blocks the second trigger (Chromium tracks activation per element instance).
   document.getElementById('cover-image-zone').addEventListener('click', e => {
     if (e.target.closest('#btn-remove-cover')) return;
-    const inp = document.getElementById('input-cover-image');
-    inp.value = '';
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.style.cssText = 'position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0;';
+    inp.addEventListener('change', async () => {
+      const file = inp.files[0];
+      inp.remove();
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); return; }
+      try {
+        const compressed = await compressImage(file, 400, 0.6);
+        AppState.pendingCoverImage = compressed;
+        const preview = document.getElementById('cover-image-preview');
+        preview.src = compressed;
+        preview.classList.remove('hidden');
+        document.getElementById('cover-image-placeholder').style.display = 'none';
+        document.getElementById('btn-remove-cover').classList.remove('hidden');
+      } catch {
+        alert('圖片處理失敗，請重試');
+      }
+    });
+    document.body.appendChild(inp);
     inp.click();
-  });
-  document.getElementById('input-cover-image').addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert('圖片超過 10MB，請選擇較小的圖片'); e.target.value = ''; return; }
-    try {
-      const compressed = await compressImage(file, 400, 0.6);
-      AppState.pendingCoverImage = compressed;
-      const preview = document.getElementById('cover-image-preview');
-      preview.src = compressed;
-      preview.classList.remove('hidden');
-      document.getElementById('cover-image-placeholder').style.display = 'none';
-      document.getElementById('btn-remove-cover').classList.remove('hidden');
-    } catch {
-      alert('圖片處理失敗，請重試');
-    }
-    e.target.value = ''; // reset after processing so re-selecting same file fires change
   });
   document.getElementById('btn-remove-cover').addEventListener('click', e => {
     e.stopPropagation();
-    e.preventDefault(); // prevent label from re-opening picker on remove
+    e.preventDefault();
     AppState.pendingCoverImage = null;
-    document.getElementById('input-cover-image').value = '';
     document.getElementById('cover-image-preview').classList.add('hidden');
     document.getElementById('cover-image-preview').src = '';
     document.getElementById('cover-image-placeholder').style.display = '';
