@@ -51,6 +51,21 @@ function _safeDocId(key) {
   return btoa(unescape(encodeURIComponent(key))).replace(/[+/=]/g, '_');
 }
 
+// Firestore rejects any document over 1 MB. A base64 coverImage can blow past
+// that and, because the project doc is written whole, a rejected write would
+// also drop the members/name update riding along with it. Guard the cloud
+// payload: if the cover is too big, upload the project without it (the local
+// copy keeps the image). 700 KB leaves headroom for the doc's other fields.
+const _FS_MAX_COVER_BYTES = 700 * 1024;
+function _fsStripOversizeCover(data) {
+  if (data && typeof data.coverImage === 'string' && data.coverImage.length > _FS_MAX_COVER_BYTES) {
+    console.warn('[Firebase] coverImage too large for Firestore, syncing project without it');
+    const { coverImage, ...rest } = data;
+    return rest;
+  }
+  return data;
+}
+
 // ── Upload Project to Firestore ───────────────────────────────
 
 async function fsUploadProject(pid) {
@@ -67,7 +82,7 @@ async function fsUploadProject(pid) {
   }
   if (!shareCode) throw new Error('無法產生分享碼，請重試');
 
-  const projectData = { ...project, shareCode };
+  const projectData = _fsStripOversizeCover({ ...project, shareCode });
 
   const batch = db.batch();
 
@@ -164,7 +179,7 @@ async function fsDeleteExpenseCloud(pid, eid) {
 async function fsSyncProject(p) {
   if (!db) return;
   try {
-    await db.collection('projects').doc(p.id).set({ ...p }, { merge: true });
+    await db.collection('projects').doc(p.id).set(_fsStripOversizeCover({ ...p }), { merge: true });
   } catch (err) { console.warn('[Firebase] sync project failed:', err); }
 }
 
@@ -191,11 +206,32 @@ async function fsSyncSettled(pid, key, isSettled) {
 
 // ── Real-time Listener ────────────────────────────────────────
 
-function fsSubscribeProject(pid, onExpenses, onSettled) {
+function fsSubscribeProject(pid, onExpenses, onSettled, onProject) {
   // Already live — keep the existing listeners. Re-subscribing here would
   // loop forever: the expenses callback re-renders the detail screen, which
   // calls fsSubscribeProject again, whose fresh initial snapshot re-fires it.
   if (_fsUnsubs[pid]) return;
+
+  // Project document — carries shared fields like members / name / algorithm.
+  // Without this listener an already-joined device never learns that another
+  // device added/removed a member, so its split-count (均分人數) goes stale.
+  // Unlike the settled sub-collection this needs no in-flight pending-guard:
+  // member edits go through fsSyncProject, and Firestore latency-compensation
+  // already reflects a device's own pending write in its snapshots, so a stale
+  // server snapshot can't revert an edit the local user just made.
+  const u0 = db.collection('projects').doc(pid)
+    .onSnapshot(doc => {
+      if (!doc.exists) return;
+      const remote = doc.data();
+      // Merge remote shared fields over the local copy. Currency `settings`
+      // are device-local (saveProjectSettings never pushes them), so keep the
+      // local ones and don't let another device's member edit stomp them.
+      const local = getAllProjects().find(p => p.id === pid) || {};
+      const merged = { ...local, ...remote };
+      if (local.settings) merged.settings = local.settings;
+      saveProject(merged);
+      if (typeof onProject === 'function') onProject(merged);
+    }, err => console.warn('[Firebase] project listener error:', err));
 
   const u1 = db.collection('projects').doc(pid).collection('expenses')
     .onSnapshot(snap => {
@@ -227,7 +263,7 @@ function fsSubscribeProject(pid, onExpenses, onSettled) {
       onSettled(keys);
     }, err => console.warn('[Firebase] settled listener error:', err));
 
-  _fsUnsubs[pid] = [u1, u2];
+  _fsUnsubs[pid] = [u0, u1, u2];
 }
 
 function fsUnsubscribeProject(pid) {

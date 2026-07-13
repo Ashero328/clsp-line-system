@@ -219,7 +219,14 @@ function renderProjectDetail(pid) {
       && !(typeof fsIsSubscribed === 'function' && fsIsSubscribed(pid))) {
     fsSubscribeProject(pid,
       () => renderProjectDetail(pid),
-      () => { if (document.getElementById('screen-settlement').classList.contains('active')) renderSettlement(pid); }
+      () => { if (document.getElementById('screen-settlement').classList.contains('active')) renderSettlement(pid); },
+      // Project doc changed (e.g. a member was added on another device) —
+      // re-render detail and, if open, the settlement screen so the split
+      // count (均分人數) stays in sync across devices.
+      () => {
+        renderProjectDetail(pid);
+        if (document.getElementById('screen-settlement').classList.contains('active')) renderSettlement(pid);
+      }
     );
   }
 
