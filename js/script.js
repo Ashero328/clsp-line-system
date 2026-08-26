@@ -664,7 +664,7 @@ function openMemberDetailModal(memberId, pid) {
   const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
 
   const items = [];
-  let totalPaid = 0, totalOwed = 0;
+  let totalPaid = 0, totalOwed = 0, totalSpent = 0, paidOwnShare = 0;
 
   for (const e of expenses) {
     const participants = getParticipants(e, project.members);
@@ -673,8 +673,9 @@ function openMemberDetailModal(memberId, pid) {
     const share    = shares[memberId] || 0;
     const isPayer  = e.payerId === memberId;
     const payer    = project.members.find(m => m.id === e.payerId);
-    if (isPayer) totalPaid += e.amount;
+    if (isPayer) { totalPaid += e.amount; paidOwnShare += share; }
     else         totalOwed += share;
+    totalSpent += share;   // personal consumption across every expense joined
     items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
   }
 
@@ -718,10 +719,10 @@ function openMemberDetailModal(memberId, pid) {
 
   const summaryEl = document.getElementById('member-detail-summary');
   const netSpan = netSettle > 0.01
-    ? `<span class="clr-primary font-bold">+${sym}${fmtAmt(cvt(netSettle))} 應收回</span>`
+    ? `<span class="clr-primary font-headline font-bold txt-2xl">+${sym}${fmtAmt(cvt(netSettle))} <span class="txt-lg">應收回</span></span>`
     : netSettle < -0.01
-    ? `<span style="color:var(--clr-error)" class="font-bold">-${sym}${fmtAmt(cvt(Math.abs(netSettle)))} 需轉帳</span>`
-    : `<span class="clr-muted">已平衡</span>`;
+    ? `<span style="color:var(--clr-error)" class="font-headline font-bold txt-2xl">-${sym}${fmtAmt(cvt(Math.abs(netSettle)))} <span class="txt-lg">需轉帳</span></span>`
+    : `<span class="clr-muted font-headline font-bold txt-lg">已平衡</span>`;
 
   const settlementLines = settlements.map(t =>
     t.debtorName === member.name
@@ -730,20 +731,24 @@ function openMemberDetailModal(memberId, pid) {
   ).join('');
 
   summaryEl.innerHTML = `
-    <div class="flex justify-between font-label txt-sm">
-      <span class="clr-muted">付出</span>
-      <span class="clr-surface font-semibold">${sym}${fmtAmt(cvt(totalPaid))}</span>
+    <div class="flex justify-between items-baseline gap-2">
+      <span class="font-label txt-md clr-muted font-semibold flex-shrink-0">個人總花費</span>
+      <span class="font-headline txt-xl font-bold clr-surface text-right min-w-0">${sym}${fmtAmt(cvt(totalSpent))}</span>
     </div>
-    <div class="flex justify-between font-label txt-sm">
-      <span class="clr-muted">應付給他人</span>
-      <span class="clr-surface font-semibold">${sym}${fmtAmt(cvt(totalOwed))}</span>
+    <div class="flex justify-between items-baseline gap-2 font-label txt-sm mt-1.5">
+      <span class="clr-muted flex-shrink-0">付出</span>
+      <span class="clr-surface font-semibold text-right min-w-0">${sym}${fmtAmt(cvt(totalPaid))}${paidOwnShare > 0.01 ? `<span class="clr-muted font-normal txt-xs">（自己 ${sym}${fmtAmt(cvt(paidOwnShare))}）</span>` : ''}</span>
     </div>
-    <div class="flex justify-between font-label txt-md mt-1 pt-2" style="border-top:1px solid var(--clr-outline)">
-      <span class="clr-muted font-semibold">淨額</span>
-      ${netSpan}
+    <div class="flex justify-between items-baseline gap-2 font-label txt-sm">
+      <span class="clr-muted flex-shrink-0">應付給他人</span>
+      <span class="clr-surface font-semibold text-right min-w-0">${sym}${fmtAmt(cvt(totalOwed))}</span>
+    </div>
+    <div class="flex justify-between items-baseline gap-2 mt-2.5 pt-3" style="border-top:1px solid var(--clr-outline)">
+      <span class="font-label txt-lg clr-muted font-bold flex-shrink-0">淨額</span>
+      <span class="text-right min-w-0">${netSpan}</span>
     </div>
     ${settlements.length > 0 ? `
-    <div class="mt-2 pt-2 flex flex-col gap-1" style="border-top:1px solid var(--clr-outline)">
+    <div class="mt-3 pt-3 flex flex-col gap-1.5" style="border-top:1px solid var(--clr-outline)">
       <span class="font-label txt-xs clr-muted">結算建議</span>
       ${settlementLines}
     </div>` : ''}`;
@@ -774,7 +779,7 @@ function copyMemberDetailText(memberId, pid) {
   const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
 
   const items = [];
-  let totalPaid = 0, totalOwed = 0;
+  let totalPaid = 0, totalOwed = 0, totalSpent = 0, paidOwnShare = 0;
 
   for (const e of expenses) {
     const participants = getParticipants(e, project.members);
@@ -783,8 +788,9 @@ function copyMemberDetailText(memberId, pid) {
     const share   = shares[memberId] || 0;
     const isPayer = e.payerId === memberId;
     const payer   = project.members.find(m => m.id === e.payerId);
-    if (isPayer) totalPaid += e.amount;
+    if (isPayer) { totalPaid += e.amount; paidOwnShare += share; }
     else         totalOwed += share;
+    totalSpent += share;
     items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
   }
 
@@ -821,7 +827,8 @@ function copyMemberDetailText(memberId, pid) {
   }
 
   text += `${divider}\n`;
-  text += `代付合計    ${sym}${fmtAmt(cvt(totalPaid))}\n`;
+  text += `個人總花費  ${sym}${fmtAmt(cvt(totalSpent))}\n`;
+  text += `代付合計    ${sym}${fmtAmt(cvt(totalPaid))}${paidOwnShare > 0.01 ? `（自己 ${sym}${fmtAmt(cvt(paidOwnShare))}）` : ''}\n`;
   text += `應付他人    ${sym}${fmtAmt(cvt(totalOwed))}\n\n`;
 
   if (netSettle > 0.01)
@@ -1252,26 +1259,57 @@ function bindAllEvents() {
   });
   document.getElementById('calc-confirm-btn').addEventListener('click', () => { navigator.vibrate?.(10); closeCalcModal(true); });
 
+  function calcApplyKey(k) {
+    if (k === 'C') {
+      calcExpr = '';
+    } else if (k === '⌫') {
+      calcExpr = calcExpr.slice(0, -1);
+    } else if (k === '=') {
+      const r = evalExpr(calcExpr);
+      if (r > 0) calcExpr = String(r);
+    } else if (k === '00') {
+      calcExpr += '00';
+    } else if (['+', '−', '×', '÷'].includes(k)) {
+      calcExpr = calcExpr.replace(/[+−×÷]$/, '') + k;
+    } else {
+      calcExpr += k;
+    }
+    calcUpdateDisplay();
+  }
+
   document.querySelectorAll('#modal-calc [data-k]').forEach(btn => {
     btn.addEventListener('click', () => {
       navigator.vibrate?.(6);
-      const k = btn.dataset.k;
-      if (k === 'C') {
-        calcExpr = '';
-      } else if (k === '⌫') {
-        calcExpr = calcExpr.slice(0, -1);
-      } else if (k === '=') {
-        const r = evalExpr(calcExpr);
-        if (r > 0) calcExpr = String(r);
-      } else if (k === '00') {
-        calcExpr += '00';
-      } else if (['+', '−', '×', '÷'].includes(k)) {
-        calcExpr = calcExpr.replace(/[+−×÷]$/, '') + k;
-      } else {
-        calcExpr += k;
-      }
-      calcUpdateDisplay();
+      calcApplyKey(btn.dataset.k);
     });
+  });
+
+  // Desktop physical keyboard — only while the calc sheet is open.
+  const CALC_KEYMAP = {
+    '+': '+', '-': '−', '−': '−',
+    '*': '×', 'x': '×', 'X': '×', '×': '×',
+    '/': '÷', '÷': '÷',
+    '.': '.', ',': '.'
+  };
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('modal-calc').classList.contains('hidden')) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // Never steal keys from a field the user is genuinely typing into.
+    const t   = e.target;
+    const tag = t && t.tagName;
+    if (t && (t.isContentEditable || tag === 'TEXTAREA' || tag === 'SELECT' ||
+              (tag === 'INPUT' && !t.readOnly))) return;
+
+    const k = e.key;
+    if (k === 'Escape')    { e.preventDefault(); closeCalcModal(false); return; }
+    if (k === 'Enter')     { e.preventDefault(); closeCalcModal(true);  return; }
+    if (k === 'Backspace') { e.preventDefault(); calcApplyKey('⌫');      return; }
+    if (k === 'Delete' || k === 'c' || k === 'C') { e.preventDefault(); calcApplyKey('C'); return; }
+    if (k === '=')         { e.preventDefault(); calcApplyKey('=');     return; }
+    if (k.length !== 1)    return;
+    if (k >= '0' && k <= '9') { e.preventDefault(); calcApplyKey(k); return; }
+    if (CALC_KEYMAP[k])       { e.preventDefault(); calcApplyKey(CALC_KEYMAP[k]); return; }
   });
 
   // Date sync
