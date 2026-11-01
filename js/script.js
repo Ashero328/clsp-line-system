@@ -86,8 +86,17 @@ function splitDesc(e, members) {
     const excl = e.splitMembers.map(id => (members.find(m=>m.id===id)||{name:'?'}).name).join('、');
     return `排除 ${excl}，${members.length - e.splitMembers.length} 人均分`;
   }
+  if (e.splitType === 'shares') {
+    const parts = getParticipants(e, members).map(id =>
+      `${(members.find(m=>m.id===id)||{name:'?'}).name} ${e.shareUnits[id]} 份`);
+    return `依份數：${parts.join('、')}`;
+  }
   const incl = e.splitMembers.map(id => (members.find(m=>m.id===id)||{name:'?'}).name).join('、');
   return `指定 ${incl} 均分`;
+}
+
+function _payerNames(e, members) {
+  return getPayers(e).map(p => (members.find(m=>m.id===p.memberId)||{name:'?'}).name).join('、');
 }
 
 function showToast(msg) {
@@ -275,6 +284,9 @@ function renderProjectDetail(pid) {
     .sort((a, b) => b.id > a.id ? 1 : -1)
     .map(e => {
       const payer    = project.members.find(m => m.id === e.payerId);
+      const payerLabel = isMultiPayer(e)
+        ? `<b>${esc(_payerNames(e, project.members))}</b> 共同出資`
+        : `由 <b>${esc(payer ? payer.name : '?')}</b> 支付`;
       const iconKey  = e.icon || detectIcon(e.name);
       const iconCls  = iconColorClass(iconKey);
       let bigAmt, smallAmt;
@@ -297,7 +309,7 @@ function renderProjectDetail(pid) {
             <div class="flex-1 min-w-0">
               <p class="expense-name font-headline">${esc(e.name)}</p>
               <div class="flex items-center gap-2 mt-1 flex-wrap">
-                <span class="expense-meta font-label">由 <b>${esc(payer ? payer.name : '?')}</b> 支付</span>
+                <span class="expense-meta font-label">${payerLabel}</span>
                 <span class="w-1 h-1 rounded-full flex-shrink-0" style="background:var(--clr-outline-var);"></span>
                 <span class="expense-meta font-label">${fmtDate(e.date)}</span>
               </div>
@@ -408,10 +420,12 @@ function renderExpenseForm(pid, eid) {
     });
   });
 
-  const initSplit = expense?.splitType || 'all';
+  const isShareSplit = expense?.splitType === 'shares';
+  const initSplit = isShareSplit ? 'all' : (expense?.splitType || 'all');
   AppState.currentSplitType = initSplit;
   updateSplitTabs(initSplit);
-  renderSplitMemberChips(project, expense?.splitMembers || []);
+  renderSplitMemberChips(project, isShareSplit ? [] : (expense?.splitMembers || []));
+  renderAdvancedSplit(project, expense);
 
   document.querySelectorAll('[data-split]').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -479,6 +493,161 @@ function updateSplitPreview(project) {
   preview.textContent = `由 ${names.join('、')} ${pids.length} 人均分，每人 ${inputCurrSym}${fmtAmt(share)}`;
 }
 
+// ── Advanced Split (多人出資 / 依份數) ───────────────────────
+function _advInputNumber(el) {
+  const v = parseFloat(el.value);
+  return isFinite(v) && v > 0 ? v : 0;
+}
+
+function _advInputSymbol() {
+  const code = document.getElementById('input-expense-currency')?.value || AppState.projectBaseCurrency;
+  return currencySymbol(code);
+}
+
+function readMultiPayerInputs() {
+  return Array.from(document.querySelectorAll('.adv-payer-input'))
+    .map(el => ({ memberId: el.dataset.mid, amount: _advInputNumber(el) }))
+    .filter(p => p.amount > 0);
+}
+
+function readShareUnitInputs() {
+  const units = {};
+  document.querySelectorAll('.adv-share-input').forEach(el => {
+    const v = _advInputNumber(el);
+    if (v > 0) units[el.dataset.mid] = v;
+  });
+  return units;
+}
+
+function renderAdvancedSplit(project, expense) {
+  const multiOn  = !!expense && isMultiPayer(expense);
+  const sharesOn = expense?.splitType === 'shares';
+
+  document.getElementById('multi-payer-rows').innerHTML = project.members.map(m => {
+    const saved = multiOn ? expense.payers.find(p => p.memberId === m.id) : null;
+    const value = saved ? (saved.originalAmount ?? saved.amount) : '';
+    return `
+      <div class="adv-row adv-row-payer">
+        <label class="adv-row-name font-label" for="adv-payer-${esc(m.id)}">${esc(m.name)}</label>
+        <div class="adv-amount-field">
+          <span class="adv-unit font-label" aria-hidden="true"></span>
+          <input id="adv-payer-${esc(m.id)}" type="number" inputmode="decimal" min="0" step="any" placeholder="0"
+            class="adv-input adv-payer-input" data-mid="${esc(m.id)}" value="${esc(value)}" />
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('share-split-rows').innerHTML = project.members.map(m => {
+    const value = sharesOn ? (expense.shareUnits?.[m.id] || 0) : 1;
+    return `
+      <div class="adv-row adv-row-share">
+        <span class="adv-row-name font-label">${esc(m.name)}</span>
+        <div class="adv-stepper" role="group" aria-label="${esc(m.name)} 的份數">
+          <button type="button" class="adv-step-btn" data-step="-1" data-mid="${esc(m.id)}" aria-label="${esc(m.name)} 減少一份">
+            <span class="material-symbols-outlined" aria-hidden="true">remove</span>
+          </button>
+          <input type="number" inputmode="decimal" min="0" step="any" aria-label="${esc(m.name)} 的份數"
+            class="adv-input adv-share-input" data-mid="${esc(m.id)}" value="${esc(value)}" />
+          <button type="button" class="adv-step-btn" data-step="1" data-mid="${esc(m.id)}" aria-label="${esc(m.name)} 增加一份">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+          </button>
+        </div>
+        <span class="adv-row-amount font-headline" data-share-amount="${esc(m.id)}"></span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('toggle-multi-payer').checked = multiOn;
+  document.getElementById('toggle-share-split').checked = sharesOn;
+  document.getElementById('expense-advanced-split').open = multiOn || sharesOn;
+  applyAdvancedSplitState();
+}
+
+function applyAdvancedSplitState() {
+  const multiOn  = document.getElementById('toggle-multi-payer').checked;
+  const sharesOn = document.getElementById('toggle-share-split').checked;
+
+  document.getElementById('multi-payer-panel').classList.toggle('hidden', !multiOn);
+  document.getElementById('share-split-panel').classList.toggle('hidden', !sharesOn);
+
+  document.getElementById('payer-selector').classList.toggle('hidden', multiOn);
+  document.getElementById('payer-advanced-note').classList.toggle('hidden', !multiOn);
+  document.getElementById('split-tabs').classList.toggle('hidden', sharesOn);
+  document.getElementById('split-advanced-note').classList.toggle('hidden', !sharesOn);
+  if (sharesOn) document.getElementById('split-detail-panel').style.display = 'none';
+  else updateSplitTabs(AppState.currentSplitType);
+
+  updateAdvancedSplitStatus();
+}
+
+function updateAdvancedSplitStatus() {
+  const amount = evalExpr(document.getElementById('input-expense-amount').value) || 0;
+  const sym    = _advInputSymbol();
+  document.querySelectorAll('.adv-unit').forEach(el => { el.textContent = sym; });
+
+  // 多人出資: entered total vs. the expense amount
+  const payerStatus = document.getElementById('multi-payer-status');
+  const paidSum = Math.round(readMultiPayerInputs().reduce((s, p) => s + p.amount, 0) * 100) / 100;
+  const payerDiff = Math.round((amount - paidSum) * 100) / 100;
+  let payerOk = false;
+  if (amount <= 0) {
+    payerStatus.textContent = `目前合計 ${sym}${fmtAmt(paidSum)}，請先輸入這筆的總金額`;
+  } else if (Math.abs(payerDiff) < 0.01) {
+    payerStatus.textContent = `合計 ${sym}${fmtAmt(paidSum)}，金額已分配完成`;
+    payerOk = true;
+  } else if (payerDiff > 0) {
+    payerStatus.textContent = `合計 ${sym}${fmtAmt(paidSum)}，還差 ${sym}${fmtAmt(payerDiff)}`;
+  } else {
+    payerStatus.textContent = `合計 ${sym}${fmtAmt(paidSum)}，超過 ${sym}${fmtAmt(-payerDiff)}`;
+  }
+  payerStatus.classList.toggle('is-ok', payerOk);
+  payerStatus.classList.toggle('is-error', !payerOk);
+
+  // 依份數: per-member amount and the price of one share
+  const shareStatus = document.getElementById('share-split-status');
+  const units = readShareUnitInputs();
+  const totalUnits = Math.round(Object.values(units).reduce((s, v) => s + v, 0) * 100) / 100;
+  const shares = amount > 0 ? calcWeightedShares(amount, units) : {};
+  document.querySelectorAll('[data-share-amount]').forEach(el => {
+    const share = shares[el.dataset.shareAmount] || 0;
+    el.textContent = `${sym}${fmtAmt(share)}`;
+  });
+  if (totalUnits <= 0) {
+    shareStatus.textContent = '請至少替一位成員填入份數';
+  } else if (amount <= 0) {
+    shareStatus.textContent = `共 ${totalUnits} 份，輸入總金額後會顯示每人金額`;
+  } else {
+    const unitPrice = amount / totalUnits;
+    const exact = Math.abs(unitPrice * 10 - Math.round(unitPrice * 10)) < 1e-9;
+    shareStatus.textContent = `共 ${totalUnits} 份，每份${exact ? '' : '約'} ${sym}${fmtAmt(unitPrice)}`;
+  }
+  shareStatus.classList.toggle('is-error', totalUnits <= 0);
+  shareStatus.classList.toggle('is-ok', totalUnits > 0);
+}
+
+function bindAdvancedSplitEvents() {
+  document.getElementById('toggle-multi-payer').addEventListener('change', applyAdvancedSplitState);
+  document.getElementById('toggle-share-split').addEventListener('change', applyAdvancedSplitState);
+  document.getElementById('input-expense-amount').addEventListener('input', updateAdvancedSplitStatus);
+  document.getElementById('input-expense-currency').addEventListener('change', updateAdvancedSplitStatus);
+
+  const section = document.getElementById('expense-advanced-split');
+  section.addEventListener('input', e => {
+    if (e.target.matches('.adv-payer-input, .adv-share-input')) updateAdvancedSplitStatus();
+  });
+  section.addEventListener('click', e => {
+    const btn = e.target.closest('.adv-step-btn');
+    if (!btn) return;
+    const input = section.querySelector(`.adv-share-input[data-mid="${CSS.escape(btn.dataset.mid)}"]`);
+    input.value = Math.max(0, _advInputNumber(input) + Number(btn.dataset.step));
+    updateAdvancedSplitStatus();
+  });
+  // Rows are rendered per form, so the keyboard scroll fix is delegated here.
+  section.addEventListener('focusin', e => {
+    if (!e.target.matches('input[type="number"]')) return;
+    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  });
+}
+
 function exportExpensesCSV(pid) {
   const project  = getAllProjects().find(p => p.id === pid);
   if (!project) return;
@@ -492,7 +661,12 @@ function exportExpensesCSV(pid) {
   const headers = ['日期', '項目名稱', '類別', '金額', '貨幣', '原始金額', '匯率', '代墊人', '分攤成員'];
   const rows = expenses.map(e => {
     const pids = getParticipants(e, project.members);
-    const participants = pids.map(id => nameOf[id] || id).join('、');
+    const participants = pids.map(id =>
+      e.splitType === 'shares' ? `${nameOf[id] || id} ${e.shareUnits[id]} 份` : (nameOf[id] || id)
+    ).join('、');
+    const payerText = isMultiPayer(e)
+      ? e.payers.map(p => `${nameOf[p.memberId] || p.memberId} ${p.amount}`).join('、')
+      : (nameOf[e.payerId] || e.payerId || '');
     return [
       e.date        || '',
       e.name        || '',
@@ -501,7 +675,7 @@ function exportExpensesCSV(pid) {
       e.currency    || '',
       e.originalAmount != null ? e.originalAmount : '',
       e.rate        != null ? e.rate : '',
-      nameOf[e.payerId] || e.payerId || '',
+      payerText,
       participants
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
   });
@@ -648,6 +822,33 @@ function renderSettlement(pid) {
 }
 
 // ── Member Detail Modal ──────────────────────────────────────
+function _collectMemberExpenses(project, expenses, memberId) {
+  const items = [];
+  let totalPaid = 0, totalOwed = 0, totalSpent = 0, paidOwnShare = 0;
+
+  for (const e of expenses) {
+    const share = getExpenseShares(e, project.members)[memberId] || 0;
+    const paid  = getPaidBy(e, memberId);
+    if (share <= 0 && paid <= 0) continue;
+    const isPayer = paid > 0;
+    totalPaid    += paid;
+    paidOwnShare += Math.min(paid, share);
+    totalOwed    += Math.max(0, share - paid);
+    totalSpent   += share;   // personal consumption across every expense joined
+    items.push({
+      name: e.name, date: e.date, total: e.amount, share, paid, isPayer,
+      isMulti: isMultiPayer(e), payerName: _payerNames(e, project.members)
+    });
+  }
+
+  const round2 = v => Math.round(v * 100) / 100;
+  return {
+    items,
+    totalPaid: round2(totalPaid), totalOwed: round2(totalOwed),
+    totalSpent: round2(totalSpent), paidOwnShare: round2(paidOwnShare)
+  };
+}
+
 function openMemberDetailModal(memberId, pid) {
   const project  = getAllProjects().find(p => p.id === pid);
   if (!project) return;
@@ -663,21 +864,7 @@ function openMemberDetailModal(memberId, pid) {
   const cvtRate   = (viewCurr !== baseCurr) ? (settings.rates?.[viewCurr] || 1) : 1;
   const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
 
-  const items = [];
-  let totalPaid = 0, totalOwed = 0, totalSpent = 0, paidOwnShare = 0;
-
-  for (const e of expenses) {
-    const participants = getParticipants(e, project.members);
-    if (!participants.includes(memberId)) continue;
-    const shares   = calcShares(e.amount, participants);
-    const share    = shares[memberId] || 0;
-    const isPayer  = e.payerId === memberId;
-    const payer    = project.members.find(m => m.id === e.payerId);
-    if (isPayer) { totalPaid += e.amount; paidOwnShare += share; }
-    else         totalOwed += share;
-    totalSpent += share;   // personal consumption across every expense joined
-    items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
-  }
+  const { items, totalPaid, totalOwed, totalSpent, paidOwnShare } = _collectMemberExpenses(project, expenses, memberId);
 
   const { transactions } = calculateRoundtable(project.members, expenses);
   const settlements    = transactions.filter(t => t.debtorId === memberId || t.creditorId === memberId);
@@ -699,6 +886,19 @@ function openMemberDetailModal(memberId, pid) {
         lastDate = item.date;
         html += `<p class="mdr-date-header">${fmtDate(item.date)}</p>`;
       }
+      const money = v => `${sym}${fmtAmt(cvt(v))}`;
+      let amountText, note;
+      if (item.isMulti && item.isPayer) {
+        const net = item.paid - item.share;
+        amountText = `${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`;
+        note = `出資 ${money(item.paid)}・分攤 ${money(item.share)}`;
+      } else if (item.isPayer) {
+        amountText = `+${money(item.share > 0 ? item.share : item.paid)}`;
+        note = item.share > 0 ? '' : '代墊，未參與分攤';
+      } else {
+        amountText = `−${money(item.share)}`;
+        note = `${item.payerName} ${item.isMulti ? '出資' : '付'}`;
+      }
       html += `
       <div class="member-detail-row">
         <div class="mdr-dot ${item.isPayer ? 'is-payer' : 'is-owed'}">
@@ -706,10 +906,10 @@ function openMemberDetailModal(memberId, pid) {
         </div>
         <div class="flex-1 min-w-0">
           <p class="font-headline font-semibold txt-body clr-surface truncate">${esc(item.name)}</p>
-          ${!item.isPayer ? `<p class="font-label clr-muted" style="font-size:11px;margin-top:2px;">${esc(item.payerName)} 付</p>` : ''}
+          ${note ? `<p class="font-label clr-muted" style="font-size:11px;margin-top:2px;">${esc(note)}</p>` : ''}
         </div>
         <div class="text-right flex-shrink-0">
-          <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">${item.isPayer ? '+' : '−'}${sym}${fmtAmt(cvt(item.share))}</p>
+          <p class="font-headline font-bold txt-md ${item.isPayer ? 'clr-primary' : 'clr-surface'}">${amountText}</p>
           <p class="font-label clr-muted" style="font-size:11px;">共 ${sym}${fmtAmt(cvt(item.total))}</p>
         </div>
       </div>`;
@@ -778,21 +978,7 @@ function copyMemberDetailText(memberId, pid) {
   const cvtRate   = (viewCurr !== baseCurr) ? (settings.rates?.[viewCurr] || 1) : 1;
   const cvt = amt => (viewCurr === baseCurr) ? amt : Math.round(amt / cvtRate);
 
-  const items = [];
-  let totalPaid = 0, totalOwed = 0, totalSpent = 0, paidOwnShare = 0;
-
-  for (const e of expenses) {
-    const participants = getParticipants(e, project.members);
-    if (!participants.includes(memberId)) continue;
-    const shares  = calcShares(e.amount, participants);
-    const share   = shares[memberId] || 0;
-    const isPayer = e.payerId === memberId;
-    const payer   = project.members.find(m => m.id === e.payerId);
-    if (isPayer) { totalPaid += e.amount; paidOwnShare += share; }
-    else         totalOwed += share;
-    totalSpent += share;
-    items.push({ name: e.name, date: e.date, total: e.amount, share, isPayer, payerName: payer?.name || '?' });
-  }
+  const { items, totalPaid, totalOwed, totalSpent, paidOwnShare } = _collectMemberExpenses(project, expenses, memberId);
 
   const { transactions } = calculateRoundtable(project.members, expenses);
   const settlements    = transactions.filter(t => t.debtorId === memberId || t.creditorId === memberId);
@@ -817,10 +1003,12 @@ function copyMemberDetailText(memberId, pid) {
         lastDate = item.date;
         text += `\n${d}\n`;
       }
-      if (item.isPayer) {
-        text += `  ✦ ${item.name}  代付 ${sym}${fmtAmt(cvt(item.share))}\n`;
+      if (item.isMulti && item.isPayer) {
+        text += `  ✦ ${item.name}  出資 ${sym}${fmtAmt(cvt(item.paid))}／分攤 ${sym}${fmtAmt(cvt(item.share))}\n`;
+      } else if (item.isPayer) {
+        text += `  ✦ ${item.name}  代付 ${sym}${fmtAmt(cvt(item.share > 0 ? item.share : item.paid))}\n`;
       } else {
-        text += `    ${item.name}  ${sym}${fmtAmt(cvt(item.share))}（${item.payerName} 付）\n`;
+        text += `    ${item.name}  ${sym}${fmtAmt(cvt(item.share))}（${item.payerName} ${item.isMulti ? '出資' : '付'}）\n`;
       }
     });
     text += `\n`;
@@ -1397,14 +1585,31 @@ function bindAllEvents() {
     if (!date)              { alert('請選擇日期'); return; }
     if (!amount || amount <= 0) { alert('請輸入有效金額'); return; }
 
-    const payerChip = document.querySelector('.payer-chip.payer-selected');
-    if (!payerChip) { alert('請選擇代墊人'); return; }
+    const multiOn  = document.getElementById('toggle-multi-payer').checked;
+    const sharesOn = document.getElementById('toggle-share-split').checked;
 
-    const splitType    = AppState.currentSplitType;
-    const splitMembers = splitType !== 'all'
-      ? Array.from(document.querySelectorAll('.split-member-chip.payer-selected')).map(c => c.dataset.mid)
-      : [];
+    const payerChip = document.querySelector('.payer-chip.payer-selected');
+    if (!multiOn && !payerChip) { alert('請選擇代墊人'); return; }
+
+    const shareUnits = sharesOn ? readShareUnitInputs() : null;
+    if (sharesOn && Object.keys(shareUnits).length === 0) { alert('依份數分攤：請至少替一位成員填入份數'); return; }
+
+    const splitType    = sharesOn ? 'shares' : AppState.currentSplitType;
+    const splitMembers = sharesOn
+      ? Object.keys(shareUnits)
+      : splitType !== 'all'
+        ? Array.from(document.querySelectorAll('.split-member-chip.payer-selected')).map(c => c.dataset.mid)
+        : [];
     if (splitType === 'include' && splitMembers.length === 0) { alert('請選擇分攤成員'); return; }
+
+    const payerInputs = multiOn ? readMultiPayerInputs() : [];
+    if (multiOn) {
+      const paidSum = Math.round(payerInputs.reduce((s, p) => s + p.amount, 0) * 100) / 100;
+      if (Math.abs(paidSum - amount) >= 0.01) {
+        alert(`多人出資合計 ${fmtAmt(paidSum)}，與這筆總金額 ${fmtAmt(amount)} 不同，請調整後再儲存`);
+        return;
+      }
+    }
 
     const pid        = AppState.currentProjectId;
     const settings   = getProjectSettings(pid);
@@ -1412,6 +1617,14 @@ function bindAllEvents() {
     const currency   = document.getElementById('input-expense-currency')?.value || base;
     const rate       = (currency !== base) ? (settings.rates?.[currency] || 1) : 1;
     const baseAmount = (currency !== base) ? Math.round(amount * rate) : amount;
+
+    // Only one person actually paid: store it as a normal single-payer expense.
+    const payers = payerInputs.length > 0
+      ? buildBasePayers(payerInputs, baseAmount, rate, currency !== base)
+      : null;
+    const payerId = payers
+      ? payers.reduce((a, b) => (b.amount > a.amount ? b : a)).memberId
+      : payerChip.dataset.mid;
 
     const expenseObj = {
       id:             AppState.currentExpenseId || generateId(),
@@ -1422,8 +1635,10 @@ function bindAllEvents() {
       originalAmount: currency !== base ? amount : null,
       rate:           currency !== base ? rate   : null,
       icon:           AppState.currentExpenseIcon,
-      payerId:        payerChip.dataset.mid,
-      splitType, splitMembers
+      payerId,
+      splitType, splitMembers,
+      ...(payers && payers.length > 1 ? { payers } : {}),
+      ...(shareUnits ? { shareUnits } : {})
     };
     saveExpense(expenseObj);
     if (fsIsSharedProject(pid) && typeof fsSyncExpense === 'function')
@@ -1431,6 +1646,8 @@ function bindAllEvents() {
     renderProjectDetail(pid);
     showScreen('screen-project-detail');
   });
+
+  bindAdvancedSplitEvents();
 
   // Settlement nav
   document.getElementById('btn-settlement-back').addEventListener('click', () => showScreen('screen-project-detail'));
@@ -1537,7 +1754,7 @@ function bindAllEvents() {
   });
 
   // Mobile keyboard scroll fix — skip readonly/inputmode-none (they open the calc modal, not the native keyboard)
-  document.querySelectorAll('input:not([readonly]):not([inputmode="none"])').forEach(el => {
+  document.querySelectorAll('input:not([readonly]):not([inputmode="none"]):not([type="checkbox"])').forEach(el => {
     el.addEventListener('focus', () => {
       setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     });

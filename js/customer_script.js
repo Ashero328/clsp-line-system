@@ -69,7 +69,34 @@ function detectIcon(name) {
 function getParticipants(expense, members) {
   if (expense.splitType === 'all') return members.map(m => m.id);
   if (expense.splitType === 'except') return members.map(m => m.id).filter(id => !expense.splitMembers.includes(id));
+  if (expense.splitType === 'shares') return Object.keys(expense.shareUnits || {}).filter(id => expense.shareUnits[id] > 0);
   return expense.splitMembers.slice();
+}
+
+// Older expenses only carry payerId; multi-payer expenses also carry payers[].
+function isMultiPayer(expense) {
+  return Array.isArray(expense.payers) && expense.payers.length > 1;
+}
+function getPayers(expense) {
+  return isMultiPayer(expense)
+    ? expense.payers
+    : [{ memberId: expense.payerId, amount: expense.amount }];
+}
+function getPaidBy(expense, memberId) {
+  return getPayers(expense).filter(p => p.memberId === memberId).reduce((s, p) => s + p.amount, 0);
+}
+// Converts entered contributions to base currency. Rounding differences go to
+// the largest payer so the payers always add up to the expense amount.
+function buildBasePayers(inputs, baseAmount, rate, isForeign) {
+  const payers = inputs.map(p => ({
+    memberId: p.memberId,
+    amount: isForeign ? Math.round(p.amount * rate) : p.amount,
+    originalAmount: isForeign ? p.amount : null
+  }));
+  const top = payers.reduce((a, b) => (b.amount > a.amount ? b : a));
+  const diff = baseAmount - payers.reduce((s, p) => s + p.amount, 0);
+  top.amount = Math.round((top.amount + diff) * 100) / 100;
+  return payers;
 }
 
 function calcShares(amount, participantIds) {
@@ -86,37 +113,41 @@ function calcShares(amount, participantIds) {
   return shares;
 }
 
-function calculateItemized(members, expenses) {
-  const nameOf = {};
-  members.forEach(m => nameOf[m.id] = m.name);
-  return expenses
-    .filter(e => e.amount > 0)
-    .map(e => {
-      const pids = getParticipants(e, members);
-      const shares = calcShares(e.amount, pids);
-      const debts = pids
-        .filter(pid => pid !== e.payerId)
-        .map(pid => ({
-          debtorId: pid, debtorName: nameOf[pid] || '?',
-          creditorId: e.payerId, creditorName: nameOf[e.payerId] || '?',
-          amount: shares[pid]
-        }));
-      return { expenseId: e.id, expenseName: e.name, expenseAmount: e.amount, debts };
-    });
+// Split by units (e.g. bags). Works in 0.1 steps like calcShares; the 0.1 steps
+// left over go to the largest remainders so the shares always add up to amount.
+function calcWeightedShares(amount, shareUnits) {
+  const ids = Object.keys(shareUnits || {}).filter(id => shareUnits[id] > 0);
+  const totalUnits = ids.reduce((s, id) => s + shareUnits[id], 0);
+  if (totalUnits <= 0) return {};
+  const totalCents = Math.round(amount * 100);
+  const tenths = Math.floor(totalCents / 10);
+  const rows = ids.map(id => {
+    const exact = tenths * shareUnits[id] / totalUnits;
+    return { id, base: Math.floor(exact + 1e-9), rem: exact - Math.floor(exact + 1e-9) };
+  });
+  let left = tenths - rows.reduce((s, r) => s + r.base, 0);
+  [...rows].sort((a, b) => b.rem - a.rem).forEach(r => {
+    if (left > 0) { r.base += 1; left -= 1; }
+  });
+  const shares = {};
+  rows.forEach(r => { shares[r.id] = r.base / 10; });
+  // Amounts with 2 decimals: keep the last cents on the largest share.
+  const extraCents = totalCents % 10;
+  if (extraCents) {
+    const top = rows.reduce((a, b) => (b.base > a.base ? b : a));
+    shares[top.id] = (top.base * 10 + extraCents) / 100;
+  }
+  return shares;
 }
 
-function calculateRoundtable(members, expenses) {
-  const nameOf = {};
-  const net = {};
-  members.forEach(m => { nameOf[m.id] = m.name; net[m.id] = 0; });
+function getExpenseShares(expense, members) {
+  return expense.splitType === 'shares'
+    ? calcWeightedShares(expense.amount, expense.shareUnits)
+    : calcShares(expense.amount, getParticipants(expense, members));
+}
 
-  expenses.filter(e => e.amount > 0).forEach(e => {
-    const pids = getParticipants(e, members);
-    const shares = calcShares(e.amount, pids);
-    net[e.payerId] = (net[e.payerId] || 0) + e.amount;
-    pids.forEach(pid => { net[pid] = (net[pid] || 0) - shares[pid]; });
-  });
-
+// Fewest transfers that clear a { memberId: balance } map.
+function minimizeTransfers(members, net) {
   const EPS = 0.01;
   const pos = members.filter(m => net[m.id] > EPS)
     .map(m => ({ id: m.id, name: m.name, b: net[m.id] }))
@@ -124,11 +155,6 @@ function calculateRoundtable(members, expenses) {
   const neg = members.filter(m => net[m.id] < -EPS)
     .map(m => ({ id: m.id, name: m.name, b: net[m.id] }))
     .sort((a, b) => a.b - b.b);
-
-  const netBalances = members.map(m => ({
-    memberId: m.id, memberName: m.name,
-    balance: Math.round(net[m.id] * 100) / 100
-  }));
 
   const transactions = [];
   let pi = 0, ni = 0;
@@ -143,7 +169,57 @@ function calculateRoundtable(members, expenses) {
     if (cr.b < EPS) pi++;
     if (Math.abs(db.b) < EPS) ni++;
   }
-  return { netBalances, transactions };
+  return transactions;
+}
+
+function calculateItemized(members, expenses) {
+  const nameOf = {};
+  members.forEach(m => nameOf[m.id] = m.name);
+  return expenses
+    .filter(e => e.amount > 0)
+    .map(e => {
+      const pids = getParticipants(e, members);
+      const shares = getExpenseShares(e, members);
+      let debts;
+      if (isMultiPayer(e)) {
+        // Several payers: net this expense first so it needs the fewest transfers.
+        const net = {};
+        members.forEach(m => { net[m.id] = getPaidBy(e, m.id) - (shares[m.id] || 0); });
+        debts = minimizeTransfers(members, net).map(t => ({
+          debtorId: t.debtorId, debtorName: t.debtorName,
+          creditorId: t.creditorId, creditorName: t.creditorName,
+          amount: t.amount
+        }));
+      } else {
+        debts = pids
+          .filter(pid => pid !== e.payerId)
+          .map(pid => ({
+            debtorId: pid, debtorName: nameOf[pid] || '?',
+            creditorId: e.payerId, creditorName: nameOf[e.payerId] || '?',
+            amount: shares[pid]
+          }));
+      }
+      return { expenseId: e.id, expenseName: e.name, expenseAmount: e.amount, debts };
+    });
+}
+
+function calculateRoundtable(members, expenses) {
+  const net = {};
+  members.forEach(m => { net[m.id] = 0; });
+
+  expenses.filter(e => e.amount > 0).forEach(e => {
+    const pids = getParticipants(e, members);
+    const shares = getExpenseShares(e, members);
+    getPayers(e).forEach(p => { net[p.memberId] = (net[p.memberId] || 0) + p.amount; });
+    pids.forEach(pid => { net[pid] = (net[pid] || 0) - shares[pid]; });
+  });
+
+  const netBalances = members.map(m => ({
+    memberId: m.id, memberName: m.name,
+    balance: Math.round(net[m.id] * 100) / 100
+  }));
+
+  return { netBalances, transactions: minimizeTransfers(members, net) };
 }
 
 // ── Block 3: Project Settings ───────────────────────────────
