@@ -61,7 +61,7 @@
   </script>
 
   <!-- Design System -->
-  <link rel="stylesheet" href="css/style.css?v=20261101a" />
+  <link rel="stylesheet" href="css/style.css?v=20261101b" />
 </head>
 <body class="bg-surface antialiased">
 
@@ -388,14 +388,17 @@
       <div>
         <label class="form-label font-label mb-3 block">代墊人</label>
         <div id="payer-selector" class="flex flex-wrap gap-2"></div>
-        <p id="payer-advanced-note" class="adv-basic-note font-label hidden">已改用下方進階分帳的「多人出資」</p>
+        <div id="multi-payer-panel" class="adv-panel mt-4 hidden">
+          <p class="adv-note font-label">填每個人實際付了多少，合計要等於總金額</p>
+          <div id="multi-payer-rows" class="adv-rows"></div>
+          <p id="multi-payer-status" class="adv-status font-label" role="status"></p>
+        </div>
       </div>
 
       <!-- 分攤方式 -->
       <div>
         <label class="form-label font-label mb-3 block">分攤方式</label>
-        <p id="split-advanced-note" class="adv-basic-note font-label hidden">已改用下方進階分帳的「依份數分攤」</p>
-        <div id="split-tabs" class="nm-sunken rounded-2xl p-1.5 flex gap-1 mb-4">
+        <div class="nm-sunken rounded-2xl p-1.5 flex gap-1 mb-4">
           <button id="split-tab-all" data-split="all"
             class="split-tab-active flex-1 rounded-xl py-2.5 font-label font-semibold transition-all">
             全部均分
@@ -408,6 +411,10 @@
             class="split-tab-inactive flex-1 rounded-xl py-2.5 font-label transition-all">
             指定…
           </button>
+          <button id="split-tab-shares" data-split="shares"
+            class="split-tab-inactive flex-1 rounded-xl py-2.5 font-label transition-all">
+            依份數
+          </button>
         </div>
         <div id="split-detail-panel" class="hidden flex-col gap-3">
           <p id="split-panel-label" class="font-label txt-md clr-muted"></p>
@@ -416,49 +423,12 @@
             <p id="split-preview" class="font-body font-semibold txt-md clr-primary"></p>
           </div>
         </div>
-      </div>
-
-      <!-- 進階分帳 -->
-      <details id="expense-advanced-split" class="adv-split flex-shrink-0">
-        <summary class="adv-summary">
-          <span class="adv-toggle-copy">
-            <span class="adv-summary-title font-label">進階分帳</span>
-            <span class="adv-toggle-hint font-label">多人出資、依份數分攤</span>
-          </span>
-          <span class="material-symbols-outlined adv-summary-chevron" aria-hidden="true">expand_more</span>
-        </summary>
-        <div class="adv-body">
-
-          <div class="adv-block">
-            <label class="adv-toggle" for="toggle-multi-payer">
-              <span class="adv-toggle-copy">
-                <span class="adv-toggle-title font-label">多人出資</span>
-                <span class="adv-toggle-hint font-label">這筆由多人一起付款</span>
-              </span>
-              <input id="toggle-multi-payer" type="checkbox" class="adv-switch" role="switch" />
-            </label>
-            <div id="multi-payer-panel" class="adv-panel hidden">
-              <div id="multi-payer-rows" class="adv-rows"></div>
-              <p id="multi-payer-status" class="adv-status font-label" role="status"></p>
-            </div>
-          </div>
-
-          <div class="adv-block">
-            <label class="adv-toggle" for="toggle-share-split">
-              <span class="adv-toggle-copy">
-                <span class="adv-toggle-title font-label">依份數分攤</span>
-                <span class="adv-toggle-hint font-label">按每人拿的數量計算金額</span>
-              </span>
-              <input id="toggle-share-split" type="checkbox" class="adv-switch" role="switch" />
-            </label>
-            <div id="share-split-panel" class="adv-panel hidden">
-              <div id="share-split-rows" class="adv-rows"></div>
-              <p id="share-split-status" class="adv-status font-label" role="status"></p>
-            </div>
-          </div>
-
+        <div id="share-split-panel" class="adv-panel hidden">
+          <p class="adv-note font-label">金額按份數比例計算。贈品若歸某人，他只填要付錢的份數。</p>
+          <div id="share-split-rows" class="adv-rows"></div>
+          <p id="share-split-status" class="adv-status font-label" role="status"></p>
         </div>
-      </details>
+      </div>
     </div>
 
     <div class="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 nm-nav">
@@ -801,11 +771,11 @@
 <!-- LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <!-- Logic Layer -->
-<script src="js/customer_script.js?v=20261101a"></script>
+<script src="js/customer_script.js?v=20261101b"></script>
 <!-- Firebase Service Layer -->
 <script src="js/firebase_service.js?v=20260826a"></script>
 <!-- UI Layer -->
-<script src="js/script.js?v=20261101a"></script>
+<script src="js/script.js?v=20261101b"></script>
 
 <!-- ── Calculator Keyboard (replaces native keyboard) ──────── -->
 <div id="modal-calc" class="hidden fixed" style="left:0;right:0;bottom:0;z-index:300;">
